@@ -7691,6 +7691,7 @@ var parseSlots = (input) => {
       lastIndex = match.index + match[0].length;
     }
   }
+  (0, import_pocketbase_log3.dbg)({ lastIndex, input });
   cleanedContent += input.slice(lastIndex);
   return {
     slots,
