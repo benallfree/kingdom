@@ -1,0 +1,19 @@
+<div class="flex flex-col items-center">
+  <div class="m-10">
+    Round
+    <progress
+      class="progress progress-primary w-96"
+      max="100"
+      value="40"
+    ></progress>
+  </div>
+  <div class="flex flex-row gap-4 mb-5">
+    <div>Coins: 100</div>
+    <div>Health: 100</div>
+  </div>
+  <div class="grid grid-cols-10 gap-1">
+    <% for(let i = 0; i < 100; i++) { %>
+    <div class="w-10 h-10 bg-primary"></div>
+    <% } %>
+  </div>
+</div>
