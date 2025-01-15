@@ -5247,6 +5247,9 @@ var v23Provider = () => ({
 var is22 = `refreshSettings` in $app;
 var getPagesProvider = () => v23Provider();
 
+// src/lib/types.ts
+init_cjs_shims();
+
 // src/main.ts
 init_cjs_shims();
 var log2 = __toESM(require_dist2());
@@ -7792,7 +7795,6 @@ var MiddlewareHandler = (request, response, next) => {
   {
     const firstPart = urlPath.split("/").filter((p) => p).shift() || "";
     if (["api", "_"].includes(firstPart)) {
-      return next();
     }
   }
   const parsedRoute = parseRoute(urlPath, routes);
@@ -7816,6 +7818,7 @@ var MiddlewareHandler = (request, response, next) => {
         return s;
       },
       formData: request.formData,
+      auth: request.auth,
       request,
       response,
       redirect: response.redirect,
@@ -7924,6 +7927,7 @@ var v23MiddlewareWrapper = (e) => {
     }
   }
   const request = {
+    auth: e.auth,
     method: method.toLowerCase(),
     url: (0, import_url_parse2.default)(url.string()),
     formData: e.requestInfo().body
@@ -7943,6 +7947,12 @@ var v23MiddlewareWrapper = (e) => {
     },
     html: (status, data) => {
       e.html(status, data);
+    },
+    header: (name, value) => {
+      e.response.header().set(name, value);
+    },
+    cookie: (name, value, options2) => {
+      response.header("Set-Cookie", `${name}=${value}; Path=/`);
     }
   };
   require(`${__hooks}/pocketpages.pb`).MiddlewareHandler(
