@@ -1245,21 +1245,9 @@ html {
   display: grid;
 }
 
-.size-4 {
-  width: 1rem;
-  height: 1rem;
-}
-
 .size-8 {
   width: 2rem;
   height: 2rem;
-}
-
-.size-fit {
-  width: -moz-fit-content;
-  width: fit-content;
-  height: -moz-fit-content;
-  height: fit-content;
 }
 
 .h-10 {
@@ -1274,16 +1262,12 @@ html {
   min-height: 100vh;
 }
 
-.w-56 {
-  width: 14rem;
+.w-10 {
+  width: 2.5rem;
 }
 
 .w-96 {
   width: 24rem;
-}
-
-.w-10 {
-  width: 2.5rem;
 }
 
 .w-full {
@@ -1306,16 +1290,12 @@ html {
   align-items: center;
 }
 
-.gap-4 {
-  gap: 1rem;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
-
 .gap-1 {
   gap: 0.25rem;
+}
+
+.gap-4 {
+  gap: 1rem;
 }
 
 .bg-base-200 {
