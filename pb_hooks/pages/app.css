@@ -1213,6 +1213,22 @@ html {
   margin-top: 0px;
 }
 
+.absolute {
+  position: absolute;
+}
+
+.relative {
+  position: relative;
+}
+
+.left-0 {
+  left: 0px;
+}
+
+.top-0 {
+  top: 0px;
+}
+
 .m-10 {
   margin: 2.5rem;
 }
@@ -1239,8 +1255,19 @@ html {
   height: 2rem;
 }
 
+.size-fit {
+  width: -moz-fit-content;
+  width: fit-content;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+
 .h-10 {
   height: 2.5rem;
+}
+
+.h-full {
+  height: 100%;
 }
 
 .min-h-screen {
@@ -1257,6 +1284,10 @@ html {
 
 .w-10 {
   width: 2.5rem;
+}
+
+.w-full {
+  width: 100%;
 }
 
 .grid-cols-10 {

@@ -1,19 +1,88 @@
-<div class="flex flex-col items-center">
-  <div class="m-10">
-    Round
-    <progress
-      class="progress progress-primary w-96"
-      max="100"
-      value="40"
-    ></progress>
-  </div>
-  <div class="flex flex-row gap-4 mb-5">
-    <div>Coins: 100</div>
-    <div>Health: 100</div>
-  </div>
-  <div class="grid grid-cols-10 gap-1">
-    <% for(let i = 0; i < 100; i++) { %>
-    <div class="w-10 h-10 bg-primary"></div>
-    <% } %>
+<div
+  x-init="
+   pb.send(`/api/login`).then(res => {
+        const {token, user} = res
+        pb.authStore.save(token, user)
+        isReady = true
+        auth = user
+        $nextTick(jdenticon)
+        res.grid
+        grid = res.grid
+      })
+    const unsub = pb.collection('rooms').subscribe('2ruk2zo3x8k11h5', (e) => {
+      grid = e.record.grid
+      $nextTick(jdenticon)
+    })
+    "
+  x-data="{
+    auth: null,
+    isReady: false,
+    getCell(idx) {
+      if (!this.grid[idx]) {
+        this.grid[idx] = {
+          joining: false,
+          playerId: null
+        }
+      }
+      return this.grid[idx]
+    },
+    grid: {},
+    join(idx) {
+      this.getCell(idx).joining = true
+      pb.send(`/api/join?idx=${idx}`).then(res => {
+        Object.entries(res.grid).forEach(([k, v]) => {
+          this.getCell(k).playerId = v.playerId
+        })
+        $nextTick(jdenticon)
+        // console.log(JSON.stringify(this.grid, null, 2))
+      }).finally(() => {
+        this.getCell(idx).joining = false
+      })
+    }
+  }"
+>
+  <div x-show="isReady">
+    <div class="flex flex-col items-center">
+      <div class="m-10">
+        Round
+        <progress
+          class="progress progress-primary w-96"
+          max="100"
+          value="40"
+        ></progress>
+      </div>
+      <div class="flex flex-row gap-4 mb-5">
+        <svg
+          class="size-8"
+          x-show="auth"
+          x-bind:data-jdenticon-value="auth?.id"
+        ></svg>
+        <div>Coins: 100</div>
+        <div>Health: 100</div>
+      </div>
+      <div>
+        <div class="grid grid-cols-10 gap-1">
+          <template x-for="i in 100">
+            <div class="w-10 h-10 bg-primary relative" x-on:click="join(i)">
+              <div
+                x-show="getCell(i).joining"
+                class="absolute top-0 left-0 w-full h-full bg-primary"
+              >
+                joining
+              </div>
+              <div
+                x-show="getCell(i).playerId"
+                class="absolute top-0 left-0 w-full h-full"
+              >
+                <svg
+                  class="w-full h-full"
+                  x-bind:data-jdenticon-value="getCell(i).playerId"
+                ></svg>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

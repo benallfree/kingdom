@@ -1,3 +1,4 @@
+import { forEach, keys, values, merge } from '@s-libs/micro-dash';
 import * as log from 'pocketbase-log';
 export { log };
 import { stringify } from 'pocketbase-stringify';
@@ -50,8 +51,9 @@ declare const AfterBootstrapHandler: PagesInitializerFunc;
 
 type PageDataLoaderFunc<TData = any> = (api: Omit<PagesApi<TData>, 'data'>) => object;
 type MiddlewareLoaderFunc<TData = any> = (api: Omit<PagesApi<TData>, 'data'>) => object;
+type PagesParams<T = string> = Record<string, T | null | Array<T | null>>;
 type PagesApi<TData = any> = {
-    params: Record<string, string>;
+    params: PagesParams;
     auth?: core.Record;
     request: PagesRequest;
     response: PagesResponse;
@@ -66,6 +68,10 @@ type PagesApi<TData = any> = {
     stringify: typeof stringify;
     url: (path: string) => URLParse<Record<string, string | undefined>>;
     require: (path: string) => any;
+    forEach: typeof forEach;
+    keys: typeof keys;
+    values: typeof values;
+    merge: typeof merge;
 } & typeof log;
 type PagesConfig = {
     preprocessorExts: string[];
@@ -89,4 +95,4 @@ declare const MiddlewareHandler: PagesMiddlewareFunc;
 
 declare const v23MiddlewareWrapper: (e: core.RequestEvent) => void;
 
-export { AfterBootstrapHandler, type Cache, type FilterOptions, MiddlewareHandler, type MiddlewareLoaderFunc, type PageDataLoaderFunc, type PagesApi, type PagesConfig, findRecordByFilter, findRecordsByFilter, v23MiddlewareWrapper };
+export { AfterBootstrapHandler, type Cache, type FilterOptions, MiddlewareHandler, type MiddlewareLoaderFunc, type PageDataLoaderFunc, type PagesApi, type PagesConfig, type PagesParams, findRecordByFilter, findRecordsByFilter, v23MiddlewareWrapper };
