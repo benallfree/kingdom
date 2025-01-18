@@ -1,5 +1,11 @@
 # kingdom
 
+## 0.0.3
+
+### Patch Changes
+
+- ddf9b90: Added round progress bar updates
+
 ## 0.0.2
 
 ### Patch Changes
