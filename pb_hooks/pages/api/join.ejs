@@ -9,17 +9,18 @@
     throw new BadRequestError('Missing idx')
   }
 
-  const { getCurrentGrid, setCurrentGrid } = resolve('grid')
+  const { getCurrentRoomState, setCurrentRoomState } = resolve('room')
 
-  let grid = {}
+  let roomState = {}
   $app.runInTransaction((txApp) => {
-    grid = getCurrentGrid(txApp)
-    if (grid[idx]?.playerId) {
+    roomState = getCurrentRoomState(txApp)
+    if (roomState.grid[idx]?.playerId) {
       throw new BadRequestError(`Cell ${idx} already has a player`)
     }
-    grid[idx] = { ...grid[idx], playerId: auth.id }
-    setCurrentGrid(grid, txApp)
+    roomState.grid[idx] = { ...roomState.grid[idx], playerId: auth.id }
+    roomState.roundExpiry = Date.now() + 1000 * 60 * 5
+    setCurrentRoomState(roomState, txApp)
   })
 
-  echo({ grid })
+  echo({ roomState })
 </script>

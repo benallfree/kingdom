@@ -9,6 +9,6 @@
     return user
   })()
   const token = user.newAuthToken()
-  const grid = resolve('grid').getCurrentGrid()
-  echo({ token, user, grid })
+  const roomState = resolve('room').getCurrentRoomState()
+  echo({ token, user, roomState })
 </script>

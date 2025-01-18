@@ -6,27 +6,47 @@
         isReady = true
         auth = user
         $nextTick(jdenticon)
-        res.grid
-        grid = res.grid
+        console.log({res})
+        roomState = res.roomState
       })
     const unsub = pb.collection('rooms').subscribe('2ruk2zo3x8k11h5', (e) => {
-      grid = e.record.grid
+      roomState = e.record.state
       $nextTick(jdenticon)
+    })
+        $watch('roomState', value => {
+          msRemaining = value.roundExpiry - Date.now()
+          pctRemaining = msRemaining / value.roundTtl
+        })
+    
+    $nextTick(() => {
+      setInterval(() => {
+        msRemaining = roomState.roundExpiry - Date.now()
+        pctRemaining = msRemaining / roomState.roundTtl
+      }, 100)
     })
     "
   x-data="{
+    msRemaining: 0,
+    pctRemaining: 0,
     auth: null,
     isReady: false,
     getCell(idx) {
-      if (!this.grid[idx]) {
-        this.grid[idx] = {
+      if (!this.roomState.grid[idx]) {
+        this.roomState.grid[idx] = {
           joining: false,
           playerId: null
         }
       }
-      return this.grid[idx]
+      return this.roomState.grid[idx]
     },
-    grid: {},
+    roomState: {
+      grid: {},
+      players: {},
+      roundNum: 0,
+      roundExpiry: 0,
+      maxRounds: 0,
+      roundTtl: 0
+    },
     join(idx) {
       this.getCell(idx).joining = true
       pb.send(`/api/join?idx=${idx}`).then(res => {
@@ -46,9 +66,9 @@
       <div class="m-10">
         Round
         <progress
-          class="progress progress-primary w-96"
-          max="100"
-          value="40"
+          x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')} w-96`"
+          x-bind:max="roomState.roundTtl"
+          x-bind:value="msRemaining"
         ></progress>
       </div>
       <div class="flex flex-row gap-4 mb-5">
