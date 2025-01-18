@@ -2115,6 +2115,7 @@ var require_ejs = __commonJS({
           }
           fn = new ctor(opts.localsName + ", escapeFn, include, rethrow", src);
         } catch (e) {
+          console.log(`***got an error`);
           if (e instanceof SyntaxError) {
             if (opts.filename) {
               e.message += " in " + opts.filename;
@@ -5237,9 +5238,43 @@ var v23Provider = () => ({
   boot: () => {
     onBootstrap((e) => {
       e.next();
+      if (!require.isOverridden) {
+        const oldRequire = require;
+        require = (path3) => {
+          try {
+            return oldRequire(path3);
+          } catch (e2) {
+            const errorMsg = `${e2}`;
+            if (errorMsg.includes("Invalid module")) {
+              throw new Error(
+                `${path3} is not a valid module. Did you mean resolve()?`
+              );
+            }
+            throw e2;
+          }
+        };
+        require.isOverridden = true;
+      }
       require(`${__hooks}/pocketpages.pb`).AfterBootstrapHandler();
     });
     routerUse((e) => {
+      if (!require.isOverridden) {
+        const oldRequire = require;
+        require = (path3) => {
+          try {
+            return oldRequire(path3);
+          } catch (e2) {
+            const errorMsg = `${e2}`;
+            if (errorMsg.includes("Invalid module")) {
+              throw new Error(
+                `${path3} is not a valid module. Did you mean resolve()?`
+              );
+            }
+            throw e2;
+          }
+        };
+        require.isOverridden = true;
+      }
       return require(`${__hooks}/pocketpages.pb`).v23MiddlewareWrapper(e);
     });
   }
