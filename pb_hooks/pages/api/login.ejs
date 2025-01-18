@@ -1,5 +1,4 @@
-module.exports = function (api) {
-  const { auth, request, response, log, require } = api
+<script server>
   const user = (() => {
     if (auth) return auth
     const usersCollection = $app.findCollectionByNameOrId('users')
@@ -11,5 +10,5 @@ module.exports = function (api) {
   })()
   const token = user.newAuthToken()
   const grid = require('grid').getCurrentGrid()
-  return { token, user, grid }
-}
+  echo({ token, user, grid })
+</script>

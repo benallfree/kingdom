@@ -1,7 +1,4 @@
-/// <reference types="pocketbase-jsvm" />
-
-module.exports = function (api) {
-  const { auth, echo, params, require } = api
+<script server>
   if (!auth) {
     throw new BadRequestError('Unauthorized')
   }
@@ -12,7 +9,7 @@ module.exports = function (api) {
     throw new BadRequestError('Missing idx')
   }
 
-  const { getCurrentGrid, setCurrentGrid } = require('grid')
+  const { getCurrentGrid, setCurrentGrid } = resolve('grid')
 
   let grid = {}
   $app.runInTransaction((txApp) => {
@@ -24,7 +21,5 @@ module.exports = function (api) {
     setCurrentGrid(grid, txApp)
   })
 
-  return {
-    grid,
-  }
-}
+  echo({ grid })
+</script>
