@@ -1,5 +1,11 @@
 # kingdom
 
+## 0.0.4
+
+### Patch Changes
+
+- Wire up coin and health
+
 ## 0.0.3
 
 ### Patch Changes

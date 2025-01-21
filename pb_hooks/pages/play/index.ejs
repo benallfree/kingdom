@@ -1,23 +1,26 @@
 <div
   x-init="
    pb.send(`/api/login`).then(res => {
-        const {token, user} = res
-        pb.authStore.save(token, user)
-        isReady = true
-        auth = user
-        $nextTick(jdenticon)
-        console.log({res})
-        roomState = res.roomState
-      })
+      const {token, user} = res
+      pb.authStore.save(token, user)
+      isReady = true
+      auth = user
+      $nextTick(jdenticon)
+      console.log({res})
+      roomState = res.roomState
+    })
     const unsub = pb.collection('rooms').subscribe('2ruk2zo3x8k11h5', (e) => {
       roomState = e.record.state
       $nextTick(jdenticon)
     })
-        $watch('roomState', value => {
-          msRemaining = value.roundExpiry - Date.now()
-          pctRemaining = msRemaining / value.roundTtl
-        })
-    
+    $watch('roomState', value => {
+      msRemaining = value.roundExpiry - Date.now()
+      pctRemaining = msRemaining / value.roundTtl
+    })
+    $watch('roomState', value => {
+      if (!auth ) return
+      playerState = value.players[auth.id] || { coins: 100, health: 0 }
+    })
     $nextTick(() => {
       setInterval(() => {
         msRemaining = roomState.roundExpiry - Date.now()
@@ -33,11 +36,19 @@
     getCell(idx) {
       if (!this.roomState.grid[idx]) {
         this.roomState.grid[idx] = {
-          joining: false,
-          playerId: null
+          playerId: null,
+          health: 0
         }
       }
       return this.roomState.grid[idx]
+    },
+    getClientCell(idx) {
+      if (!this.clientRoomState.grid[idx]) {
+        this.clientRoomState.grid[idx] = {
+          joining: false
+        }
+      }
+      return this.clientRoomState.grid[idx]
     },
     roomState: {
       grid: {},
@@ -47,16 +58,27 @@
       maxRounds: 0,
       roundTtl: 0
     },
+    clientRoomState: {
+      grid: {}
+    },
+    playerState: {
+      coins: 100,
+      health: 0
+    },
+    idBase: 0,
+    uniqId() {
+      return this.idBase++
+    },
     join(idx) {
-      this.getCell(idx).joining = true
-      pb.send(`/api/join?idx=${idx}`).then(res => {
-        Object.entries(res.grid).forEach(([k, v]) => {
+      this.getClientCell(idx).joining = true
+      pb.send(`/api/join?idx=${idx}`, { requestKey: this.uniqId()}).then(res => {
+        Object.entries(res.roomState.grid).forEach(([k, v]) => {
           this.getCell(k).playerId = v.playerId
         })
         $nextTick(jdenticon)
         // console.log(JSON.stringify(this.grid, null, 2))
       }).finally(() => {
-        this.getCell(idx).joining = false
+        this.getClientCell(idx).joining = false
       })
     }
   }"
@@ -77,27 +99,30 @@
           x-show="auth"
           x-bind:data-jdenticon-value="auth?.id"
         ></svg>
-        <div>Coins: 100</div>
-        <div>Health: 100</div>
+        <div>Coins: <span x-text="playerState.coins"></span></div>
+        <div>Health: <span x-text="playerState.health"></span></div>
       </div>
       <div>
         <div class="grid grid-cols-10 gap-1">
           <template x-for="i in 100">
             <div class="w-10 h-10 bg-primary relative" x-on:click="join(i)">
               <div
-                x-show="getCell(i).joining"
+                x-show="getClientCell(i).joining"
                 class="absolute top-0 left-0 w-full h-full bg-primary"
               >
                 joining
               </div>
-              <div
-                x-show="getCell(i).playerId"
-                class="absolute top-0 left-0 w-full h-full"
-              >
-                <svg
-                  class="w-full h-full"
-                  x-bind:data-jdenticon-value="getCell(i).playerId"
-                ></svg>
+              <div x-show="getCell(i).playerId">
+                <div class="absolute top-0 left-0 w-full h-full">
+                  <svg
+                    class="w-full h-full"
+                    x-bind:data-jdenticon-value="getCell(i).playerId"
+                  ></svg>
+                </div>
+                <div
+                  x-text="getCell(i).health"
+                  class="absolute bottom-1 right-1 text-xs w-5 h-5 flex items-center justify-center bg-secondary text-secondary-content rounded-full"
+                ></div>
               </div>
             </div>
           </template>

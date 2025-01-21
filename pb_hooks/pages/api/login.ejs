@@ -10,5 +10,5 @@
   })()
   const token = user.newAuthToken()
   const roomState = resolve('room').getCurrentRoomState()
-  echo({ token, user, roomState })
+  return { token, user, roomState }
 </script>

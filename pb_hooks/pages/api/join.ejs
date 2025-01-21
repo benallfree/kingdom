@@ -12,15 +12,32 @@
   const { getCurrentRoomState, setCurrentRoomState } = resolve('room')
 
   let roomState = {}
+
   $app.runInTransaction((txApp) => {
     roomState = getCurrentRoomState(txApp)
-    if (roomState.grid[idx]?.playerId) {
+    if (
+      roomState.grid[idx]?.playerId &&
+      roomState.grid[idx].playerId !== auth.id
+    ) {
       throw new BadRequestError(`Cell ${idx} already has a player`)
     }
-    roomState.grid[idx] = { ...roomState.grid[idx], playerId: auth.id }
+    if (!roomState.players[auth.id]) {
+      roomState.players[auth.id] = { coins: 100, health: 0 }
+    }
+
+    if (roomState.players[auth.id]?.coins <= 0) {
+      throw new BadRequestError('Not enough coins')
+    }
+    roomState.players[auth.id].coins -= 1
+    roomState.players[auth.id].health += 1
+
+    if (!roomState.grid[idx]) {
+      roomState.grid[idx] = { playerId: auth.id, health: 0 }
+    }
+    roomState.grid[idx].health += 1
     roomState.roundExpiry = Date.now() + 1000 * 60 * 5
     setCurrentRoomState(roomState, txApp)
   })
 
-  echo({ roomState })
+  return { roomState }
 </script>
