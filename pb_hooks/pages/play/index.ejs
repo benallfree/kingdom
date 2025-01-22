@@ -144,7 +144,7 @@
 
   <div x-show="isReady">
     <div class="flex flex-col items-center">
-      <div class="flex flex-row items-center gap-2">
+      <div class="flex flex-row items-center gap-2 mt-2">
         <div class="ml-2 mr-2">🕚</div>
         <progress
           x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')} w-72`"
@@ -165,6 +165,10 @@
           </div>
         </div>
       </div>
+      <div
+        x-text="error"
+        x-bind:class="`text-error h-5 mb-2 text-center w-full ${error ? `visible` : `invisible`}`"
+      ></div>
 
       <div>
         <div class="grid grid-cols-10 gap-0">
@@ -173,7 +177,6 @@
               x-bind:class="`w-10 h-10 border border-primary border-1 relative ${getCell(i).hasPrize ? 'bg-yellow-300 animate-[pulse_1s_ease-in-out_infinite]' : ''}`"
               x-on:click="join(i)"
             >
-              <div x-text="error" class="text-error m-5"></div>
               <div
                 x-show="getClientCell(i).joining"
                 class="absolute top-0 left-0 w-full h-full animate-spin"
