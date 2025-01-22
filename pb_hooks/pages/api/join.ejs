@@ -9,7 +9,7 @@
     throw new BadRequestError('Missing idx')
   }
 
-  const { getRoomState, setPublicRoomState } = resolve('room')
+  const { getRoomState, setRoomState, pushRoomState } = resolve('room')
 
   let roomState = {}
   let error = null
@@ -17,37 +17,54 @@
   $app.runInTransaction((txApp) => {
     roomState = getRoomState(txApp)
 
-    const publicState = roomState.publicState
-
     if (
-      publicState.grid[idx]?.playerId &&
-      publicState.grid[idx].playerId !== auth.id
+      roomState.grid[idx]?.playerId &&
+      roomState.grid[idx].playerId !== auth.id
     ) {
       error = `Cell is occupied`
       return
     }
-    if (!publicState.players[auth.id]) {
-      publicState.players[auth.id] = { coins: 10, health: 0 }
+    if (!roomState.players[auth.id]) {
+      roomState.players[auth.id] = { coins: 10, health: 0 }
     }
 
-    if (publicState.players[auth.id]?.coins <= 0) {
+    if (roomState.players[auth.id]?.coins <= 0) {
       error = `Not enough coins`
       return
     }
-    publicState.players[auth.id].coins -= 1
-    publicState.players[auth.id].health += 1
+    roomState.players[auth.id].coins -= 1
+    roomState.players[auth.id].health += 1
 
-    if (!publicState.grid[idx]) {
-      publicState.grid[idx] = { playerId: auth.id, health: 0 }
+    if (!roomState.grid[idx]) {
+      roomState.grid[idx] = { playerId: auth.id, health: 0 }
     }
-    publicState.grid[idx].health += 1
-    publicState.roundExpiry = Date.now() + 1000 * 60 * 5
+    roomState.grid[idx].health += 1
+    roomState.roundStartedAt = Date.now()
 
-    setPublicRoomState(publicState, txApp)
+    setRoomState(roomState, txApp)
 
-    const hasPrize = roomState.privateState.prizeIdx == idx
-    roomState.publicState.grid[idx].hasPrize = hasPrize
+    const hasPrize = roomState.prizeIdx == idx
+    roomState.grid[idx].hasPrize = hasPrize
+
+    const delta = {
+      [`grid.${idx}.playerId`]: auth.id,
+      [`roundStartedAt`]: roomState.roundStartedAt,
+    }
+    pushRoomState(
+      `2ruk2zo3x8k11h5`,
+      delta,
+      (client) => client.get('auth').id !== auth.id
+    )
+    delta[`grid.${idx}.hasPrize`] = hasPrize
+    delta[`grid.${idx}.health`] = roomState.grid[idx].health
+    delta[`players.${auth.id}.coins`] = roomState.players[auth.id].coins
+    delta[`players.${auth.id}.health`] = roomState.players[auth.id].health
+    pushRoomState(
+      `2ruk2zo3x8k11h5`,
+      delta,
+      (client) => client.get('auth').id === auth.id
+    )
   })
 
-  return { roomState: roomState.publicState, error }
+  return { error }
 </script>

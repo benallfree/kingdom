@@ -1,30 +1,58 @@
 <div
   x-init="
+    const watch = (()=>{
+      let unsub
+      return ()=>{
+        unsub?.()
+        unsub = pb.realtime.subscribe(`rooms/2ruk2zo3x8k11h5/delta`, (e) => {
+          Object.entries(e).forEach(([key, value]) => {
+            let node = roomState
+            const keys = key.split('.')
+            const leafKey = keys.pop()
+            const leafValue = value
+            const leafNode = keys.reduce((node, k) => {
+              if(!node[k]) {
+                node[k] = {}
+              }
+              return node[k]
+            }, roomState)
+            leafNode[leafKey] = leafValue
+          })
+        })
+      }
+    })()
     const login = ()=> {
-   pb.send(`/api/login`).then(res => {
-      const {token, user} = res
-      pb.authStore.save(token, user)
-      isReady = true
-      auth = user
-      $nextTick(jdenticon)
-      roomState = normalizeRoomState(res.roomState)
-    })
+      pb.send(`/api/login`).then(res => {
+        const {token, user} = res
+        pb.authStore.save(token, user)
+        isReady = true
+        auth = user
+        $nextTick(jdenticon)
+        roomState = normalizeRoomState(res.roomState)
+        watch()
+      })
     }
     login()
     pb.realtime.subscribe('PB_CONNECT', (e) => {
-      login()
+      // login()
     })
-    })
+
+   
     $watch('roomState', value => {
       $nextTick(jdenticon)
     })
-    $watch('roomState', value => {
-      msRemaining = value.roundExpiry - Date.now()
-      pctRemaining = msRemaining / value.roundTtl
+    const calcTimeRemaining = (roomState) => {
+      msRemaining = Math.max(0, roomState.roundStartedAt + roomState.roundTtl - Date.now())
+      pctRemaining = msRemaining / roomState.roundTtl
+    }
+    $watch('roomState', calcTimeRemaining, value => {
+      const { msRemaining, pctRemaining } = calcTimeRemaining(value)
+      msRemaining = msRemaining
+      pctRemaining = pctRemaining
     })
     $watch('roomState', value => {
       if (!auth ) return
-      playerState = value.players[auth.id] || { coins: 100, health: 0 }
+      playerState = value.players[auth.id] || { coins: 10, health: 0 }
     })
     $watch('roomState', value => {
       const cellEntries = Object.entries(value.grid)
@@ -38,8 +66,7 @@
     })
     $nextTick(() => {
       setInterval(() => {
-        msRemaining = roomState.roundExpiry - Date.now()
-        pctRemaining = msRemaining / roomState.roundTtl
+        calcTimeRemaining(roomState)
       }, 100)
     })
     "
@@ -82,7 +109,7 @@
       grid: {},
       players: {},
       roundNum: 0,
-      roundExpiry: 0,
+      roundStartedAt: +new Date(),
       maxRounds: 0,
       roundTtl: 0
     },
@@ -101,7 +128,6 @@
       this.error = null
       this.getClientCell(idx).joining = true
       pb.send(`/api/join?idx=${idx}`, { requestKey: this.uniqId()}).then(res => {
-        this.roomState = this.normalizeRoomState(res.roomState)
         this.error = res.error
       }).finally(() => {
         this.getClientCell(idx).joining = false
@@ -162,6 +188,7 @@
                   ></svg>
                 </div>
                 <div
+                  x-show="getCell(i).health"
                   x-text="getCell(i).health"
                   class="absolute bottom-1 right-1 text-xs w-5 h-5 flex items-center justify-center bg-secondary text-secondary-content rounded-full"
                 ></div>
