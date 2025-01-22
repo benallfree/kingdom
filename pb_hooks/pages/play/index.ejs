@@ -1,5 +1,6 @@
 <div
   x-init="
+    const login = ()=> {
    pb.send(`/api/login`).then(res => {
       const {token, user} = res
       pb.authStore.save(token, user)
@@ -8,8 +9,11 @@
       $nextTick(jdenticon)
       roomState = normalizeRoomState(res.roomState)
     })
-    const unsub = pb.collection('rooms').subscribe('2ruk2zo3x8k11h5', (e) => {
-      roomState = normalizeRoomState(e.record.state)
+    }
+    login()
+    pb.realtime.subscribe('PB_CONNECT', (e) => {
+      login()
+    })
     })
     $watch('roomState', value => {
       $nextTick(jdenticon)
