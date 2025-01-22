@@ -167,10 +167,10 @@
       </div>
 
       <div>
-        <div class="grid grid-cols-10 gap-1">
+        <div class="grid grid-cols-10 gap-0">
           <template x-for="i in 100">
             <div
-              x-bind:class="`w-10 h-10 bg-primary relative ${getCell(i).hasPrize ? 'bg-yellow-300 animate-[pulse_1s_ease-in-out_infinite]' : ''}`"
+              x-bind:class="`w-10 h-10 border border-primary border-1 relative ${getCell(i).hasPrize ? 'bg-yellow-300 animate-[pulse_1s_ease-in-out_infinite]' : ''}`"
               x-on:click="join(i)"
             >
               <div
