@@ -183,7 +183,7 @@
                   x-bind:data-jdenticon-value="getCell(i).playerId"
                 ></svg>
               </div>
-              <div x-show="getCell(i).playerId">
+              <div x-show="getCell(i).playerId && !getClientCell(i).joining">
                 <div class="absolute top-0 left-0 w-full h-full">
                   <svg
                     class="w-full h-full"
