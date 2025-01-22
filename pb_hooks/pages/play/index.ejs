@@ -51,6 +51,7 @@
       }
       return roomState
     },
+    error: null,
     prizeIdx: null,
     msRemaining: 0,
     pctRemaining: 0,
@@ -85,7 +86,7 @@
       grid: {}
     },
     playerState: {
-      coins: 100,
+      coins: 10,
       health: 0
     },
     idBase: 0,
@@ -93,9 +94,11 @@
       return this.idBase++
     },
     join(idx) {
+      this.error = null
       this.getClientCell(idx).joining = true
       pb.send(`/api/join?idx=${idx}`, { requestKey: this.uniqId()}).then(res => {
         this.roomState = this.normalizeRoomState(res.roomState)
+        this.error = res.error
       }).finally(() => {
         this.getClientCell(idx).joining = false
       })
@@ -133,6 +136,7 @@
       >
         You found the BTC! Defend it from other players.
       </div>
+      <div x-show="error" x-text="error" class="text-error m-5"></div>
       <div>
         <div class="grid grid-cols-10 gap-1">
           <template x-for="i in 100">

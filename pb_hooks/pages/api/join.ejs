@@ -12,6 +12,7 @@
   const { getRoomState, setPublicRoomState } = resolve('room')
 
   let roomState = {}
+  let error = null
 
   $app.runInTransaction((txApp) => {
     roomState = getRoomState(txApp)
@@ -22,14 +23,16 @@
       publicState.grid[idx]?.playerId &&
       publicState.grid[idx].playerId !== auth.id
     ) {
-      throw new BadRequestError(`Cell ${idx} already has a player`)
+      error = `Cell is occupied`
+      return
     }
     if (!publicState.players[auth.id]) {
-      publicState.players[auth.id] = { coins: 100, health: 0 }
+      publicState.players[auth.id] = { coins: 10, health: 0 }
     }
 
     if (publicState.players[auth.id]?.coins <= 0) {
-      throw new BadRequestError('Not enough coins')
+      error = `Not enough coins`
+      return
     }
     publicState.players[auth.id].coins -= 1
     publicState.players[auth.id].health += 1
@@ -46,5 +49,5 @@
     roomState.publicState.grid[idx].hasPrize = hasPrize
   })
 
-  return { roomState: roomState.publicState }
+  return { roomState: roomState.publicState, error }
 </script>
