@@ -9,35 +9,42 @@
     throw new BadRequestError('Missing idx')
   }
 
-  const { getCurrentRoomState, setCurrentRoomState } = resolve('room')
+  const { getRoomState, setPublicRoomState } = resolve('room')
 
   let roomState = {}
 
   $app.runInTransaction((txApp) => {
-    roomState = getCurrentRoomState(txApp)
+    roomState = getRoomState(txApp)
+
+    const publicState = roomState.publicState
+
     if (
-      roomState.grid[idx]?.playerId &&
-      roomState.grid[idx].playerId !== auth.id
+      publicState.grid[idx]?.playerId &&
+      publicState.grid[idx].playerId !== auth.id
     ) {
       throw new BadRequestError(`Cell ${idx} already has a player`)
     }
-    if (!roomState.players[auth.id]) {
-      roomState.players[auth.id] = { coins: 100, health: 0 }
+    if (!publicState.players[auth.id]) {
+      publicState.players[auth.id] = { coins: 100, health: 0 }
     }
 
-    if (roomState.players[auth.id]?.coins <= 0) {
+    if (publicState.players[auth.id]?.coins <= 0) {
       throw new BadRequestError('Not enough coins')
     }
-    roomState.players[auth.id].coins -= 1
-    roomState.players[auth.id].health += 1
+    publicState.players[auth.id].coins -= 1
+    publicState.players[auth.id].health += 1
 
-    if (!roomState.grid[idx]) {
-      roomState.grid[idx] = { playerId: auth.id, health: 0 }
+    if (!publicState.grid[idx]) {
+      publicState.grid[idx] = { playerId: auth.id, health: 0 }
     }
-    roomState.grid[idx].health += 1
-    roomState.roundExpiry = Date.now() + 1000 * 60 * 5
-    setCurrentRoomState(roomState, txApp)
+    publicState.grid[idx].health += 1
+    publicState.roundExpiry = Date.now() + 1000 * 60 * 5
+
+    setPublicRoomState(publicState, txApp)
+
+    const hasPrize = roomState.privateState.prizeIdx == idx
+    roomState.publicState.grid[idx].hasPrize = hasPrize
   })
 
-  return { roomState }
+  return { roomState: roomState.publicState }
 </script>

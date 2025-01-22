@@ -1,5 +1,11 @@
 # kingdom
 
+## 0.0.5
+
+### Patch Changes
+
+- Added BTC payout/prize feature
+
 ## 0.0.4
 
 ### Patch Changes

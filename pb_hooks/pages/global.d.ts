@@ -6,9 +6,10 @@ type PlayerState = {
 type CellState = {
   playerId: string
   health: number
+  hasPrize: boolean
 }
 
-type RoomState = {
+type RoomStatePublic = {
   grid: Record<string, CellState>
   players: Record<string, PlayerState>
   roundNum: number
@@ -20,3 +21,9 @@ type RoomState = {
 type ClientRoomState = {
   grid: Record<string, CellState & { joining: boolean }>
 }
+
+type RoomStatePrivate = {
+  prizeIdx: number
+}
+
+type RoomState = { public: RoomStatePublic; private: RoomStatePrivate }

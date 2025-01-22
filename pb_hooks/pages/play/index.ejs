@@ -6,11 +6,12 @@
       isReady = true
       auth = user
       $nextTick(jdenticon)
-      console.log({res})
-      roomState = res.roomState
+      roomState = normalizeRoomState(res.roomState)
     })
     const unsub = pb.collection('rooms').subscribe('2ruk2zo3x8k11h5', (e) => {
-      roomState = e.record.state
+      roomState = normalizeRoomState(e.record.state)
+    })
+    $watch('roomState', value => {
       $nextTick(jdenticon)
     })
     $watch('roomState', value => {
@@ -21,6 +22,16 @@
       if (!auth ) return
       playerState = value.players[auth.id] || { coins: 100, health: 0 }
     })
+    $watch('roomState', value => {
+      const cellEntries = Object.entries(value.grid)
+      for(let i = 0; i < cellEntries.length; i++) {
+        const [idx, cell] = cellEntries[i]
+        if(cell.hasPrize) {
+          prizeIdx =idx
+          break
+        }
+      }
+    })
     $nextTick(() => {
       setInterval(() => {
         msRemaining = roomState.roundExpiry - Date.now()
@@ -29,6 +40,18 @@
     })
     "
   x-data="{
+    normalizeRoomState(roomState) {
+      for(let i = 1; i <= 100; i++) {
+        roomState.grid[i] = {
+          playerId: null,
+          hasPrize: this.prizeIdx == i,
+          health: 0,
+          ...roomState.grid[i]
+        }
+      }
+      return roomState
+    },
+    prizeIdx: null,
     msRemaining: 0,
     pctRemaining: 0,
     auth: null,
@@ -72,11 +95,7 @@
     join(idx) {
       this.getClientCell(idx).joining = true
       pb.send(`/api/join?idx=${idx}`, { requestKey: this.uniqId()}).then(res => {
-        Object.entries(res.roomState.grid).forEach(([k, v]) => {
-          this.getCell(k).playerId = v.playerId
-        })
-        $nextTick(jdenticon)
-        // console.log(JSON.stringify(this.grid, null, 2))
+        this.roomState = this.normalizeRoomState(res.roomState)
       }).finally(() => {
         this.getClientCell(idx).joining = false
       })
@@ -99,13 +118,28 @@
           x-show="auth"
           x-bind:data-jdenticon-value="auth?.id"
         ></svg>
-        <div>Coins: <span x-text="playerState.coins"></span></div>
-        <div>Health: <span x-text="playerState.health"></span></div>
+        <div>Moves Remaining: <span x-text="playerState.coins"></span></div>
+      </div>
+      <div
+        x-show="!prizeIdx"
+        class="text-center text-lg ml-10 mr-10 mb-5 text-accent"
+      >
+        One of these cells has 0.00018 BTC. Find it and defend it from other
+        players.
+      </div>
+      <div
+        x-show="prizeIdx"
+        class="text-center text-lg ml-10 mr-10 mb-5 text-success"
+      >
+        You found the BTC! Defend it from other players.
       </div>
       <div>
         <div class="grid grid-cols-10 gap-1">
           <template x-for="i in 100">
-            <div class="w-10 h-10 bg-primary relative" x-on:click="join(i)">
+            <div
+              x-bind:class="`w-10 h-10 bg-primary relative ${getCell(i).hasPrize ? 'bg-yellow-300 animate-[pulse_1s_ease-in-out_infinite]' : ''}`"
+              x-on:click="join(i)"
+            >
               <div
                 x-show="getClientCell(i).joining"
                 class="absolute top-0 left-0 w-full h-full bg-primary"
@@ -126,6 +160,20 @@
               </div>
             </div>
           </template>
+        </div>
+      </div>
+    </div>
+    <div class="hero bg-base-200">
+      <div class="hero-content text-center">
+        <div class="max-w-md">
+          <h1 class="text-5xl font-bold">Progressive BTC Payout Rules</h1>
+          <div class="text-2xl">
+            Current Payout: 0.00018 BTC (~$5 USD at current BTC price)
+          </div>
+          <p class="py-6">
+            How it works: We hid some BTC in one of the cells. If you can find
+            it and defend the cell from other players, you win the pot.
+          </p>
         </div>
       </div>
     </div>

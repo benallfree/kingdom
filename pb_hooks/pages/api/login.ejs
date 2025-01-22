@@ -9,6 +9,12 @@
     return user
   })()
   const token = user.newAuthToken()
-  const roomState = resolve('room').getCurrentRoomState()
-  return { token, user, roomState }
+  const { publicState, privateState } = resolve('room').getRoomState()
+
+  const cell = publicState.grid[privateState.prizeIdx]
+  if (cell && cell.playerId === user.id) {
+    cell.hasPrize = true
+  }
+
+  return { token, user, roomState: publicState }
 </script>
