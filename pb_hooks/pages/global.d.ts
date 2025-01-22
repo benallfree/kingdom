@@ -10,6 +10,7 @@ type CellState = {
 }
 
 type RoomState = {
+  prizeDescription: string
   prizeIdx: number
   grid: Record<string, CellState>
   players: Record<string, PlayerState>

@@ -152,18 +152,18 @@
           x-bind:value="msRemaining"
         ></progress>
         <div class="relative w-16 h-8">
-        <svg
+          <svg
             class="size-8 absolute top-0 left-0"
-          x-show="auth"
-          x-bind:data-jdenticon-value="auth?.id"
-        ></svg>
+            x-show="auth"
+            x-bind:data-jdenticon-value="auth?.id"
+          ></svg>
           <div class="absolute top-0 right-0 text-xs">
             ⚒️<span x-text="playerState.coins"></span>
           </div>
           <div class="absolute bottom-0 right-0 text-xs">
             ❤️<span x-text="playerState.health"></span>
-      </div>
-      </div>
+          </div>
+        </div>
       </div>
 
       <div>
@@ -173,6 +173,7 @@
               x-bind:class="`w-10 h-10 border border-primary border-1 relative ${getCell(i).hasPrize ? 'bg-yellow-300 animate-[pulse_1s_ease-in-out_infinite]' : ''}`"
               x-on:click="join(i)"
             >
+              <div x-text="error" class="text-error m-5"></div>
               <div
                 x-show="getClientCell(i).joining"
                 class="absolute top-0 left-0 w-full h-full animate-spin"
