@@ -9,6 +9,25 @@ const getRoomState = (dao = $app) => {
     maxRounds: 10,
     roundTtl: 1000 * 60 * 5,
     prizeIdx: Math.floor(Math.random() * 100) + 1,
+    prizeDescription:
+      'One of these cells has 0.00018 BTC. Find it and defend it from other players.',
+    prizeFound: 'You found the BTC! Defend it from other players.',
+    prize: {
+      banner: `    <div class="hero bg-base-200">
+      <div class="hero-content text-center">
+        <div class="max-w-md">
+          <h1 class="text-5xl font-bold">Progressive BTC Payout Rules</h1>
+          <div class="text-2xl">
+            Current Payout: 0.00018 BTC (~$5 USD at current BTC price)
+          </div>
+          <p class="py-6">
+            How it works: We hid some BTC in one of the cells. If you can find
+            it and defend the cell from other players, you win the pot.
+          </p>
+        </div>
+      </div>
+    </div>`,
+    },
     ...storedState,
   }
   return normalizedState
