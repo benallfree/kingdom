@@ -144,36 +144,28 @@
 
   <div x-show="isReady">
     <div class="flex flex-col items-center">
-      <div class="m-10">
-        Round
+      <div class="flex flex-row items-center gap-2">
+        <div class="ml-2 mr-2">🕚</div>
         <progress
-          x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')} w-96`"
+          x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')} w-72`"
           x-bind:max="roomState.roundTtl"
           x-bind:value="msRemaining"
         ></progress>
-      </div>
-      <div class="flex flex-row gap-4 mb-5">
+        <div class="relative w-16 h-8">
         <svg
-          class="size-8"
+            class="size-8 absolute top-0 left-0"
           x-show="auth"
           x-bind:data-jdenticon-value="auth?.id"
         ></svg>
-        <div>Moves Remaining: <span x-text="playerState.coins"></span></div>
+          <div class="absolute top-0 right-0 text-xs">
+            ⚒️<span x-text="playerState.coins"></span>
+          </div>
+          <div class="absolute bottom-0 right-0 text-xs">
+            ❤️<span x-text="playerState.health"></span>
       </div>
-      <div
-        x-show="!prizeIdx"
-        class="text-center text-lg ml-10 mr-10 mb-5 text-accent"
-      >
-        One of these cells has 0.00018 BTC. Find it and defend it from other
-        players.
       </div>
-      <div
-        x-show="prizeIdx"
-        class="text-center text-lg ml-10 mr-10 mb-5 text-success"
-      >
-        You found the BTC! Defend it from other players.
       </div>
-      <div x-show="error" x-text="error" class="text-error m-5"></div>
+
       <div>
         <div class="grid grid-cols-10 gap-1">
           <template x-for="i in 100">
