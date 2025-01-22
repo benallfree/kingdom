@@ -1346,6 +1346,52 @@ html {
   animation: pulse 1s ease-in-out infinite;
 }
 
+.animate-\[scale_1s_ease-in-out_infinite\] {
+  animation: scale 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-\[spin_2s_linear_infinite\] {
+  animation: spin 2s linear infinite;
+}
+
+.animate-\[scale-50_1s_ease-in-out_infinite\] {
+  animation: scale-50 1s ease-in-out infinite;
+}
+
+.animate-\[scale-50_1s_linear_infinite\] {
+  animation: scale-50 1s linear infinite;
+}
+
+.animate-\[width-50_1s_linear_infinite\] {
+  animation: width-50 1s linear infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 .grid-cols-10 {
   grid-template-columns: repeat(10, minmax(0, 1fr));
 }
