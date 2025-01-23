@@ -1,5 +1,5 @@
 type PlayerState = {
-  coins: number
+  shards: number
   health: number
 }
 

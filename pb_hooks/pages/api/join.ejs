@@ -25,14 +25,14 @@
       return
     }
     if (!roomState.players[auth.id]) {
-      roomState.players[auth.id] = { coins: 10, health: 0 }
+      roomState.players[auth.id] = { shards: 10, health: 0 }
     }
 
-    if (roomState.players[auth.id]?.coins <= 0) {
-      error = { message: `Not enough coins`, idx }
+    if (roomState.players[auth.id]?.shards <= 0) {
+      error = { message: `Not enough shards`, idx }
       return
     }
-    roomState.players[auth.id].coins -= 1
+    roomState.players[auth.id].shards -= 1
     roomState.players[auth.id].health += 1
 
     if (!roomState.grid[idx]) {
@@ -57,7 +57,7 @@
     )
     delta[`grid.${idx}.hasPrize`] = hasPrize
     delta[`grid.${idx}.health`] = roomState.grid[idx].health
-    delta[`players.${auth.id}.coins`] = roomState.players[auth.id].coins
+    delta[`players.${auth.id}.shards`] = roomState.players[auth.id].shards
     delta[`players.${auth.id}.health`] = roomState.players[auth.id].health
     pushRoomState(
       `2ruk2zo3x8k11h5`,
