@@ -21,7 +21,7 @@
       roomState.grid[idx]?.playerId &&
       roomState.grid[idx].playerId !== auth.id
     ) {
-      error = `Cell is occupied`
+      error = { message: `Cell is occupied`, idx }
       return
     }
     if (!roomState.players[auth.id]) {
@@ -29,7 +29,7 @@
     }
 
     if (roomState.players[auth.id]?.coins <= 0) {
-      error = `Not enough coins`
+      error = { message: `Not enough coins`, idx }
       return
     }
     roomState.players[auth.id].coins -= 1

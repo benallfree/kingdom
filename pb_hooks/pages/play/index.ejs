@@ -166,7 +166,7 @@
         </div>
       </div>
       <div
-        x-text="error"
+        x-text="error?.message"
         x-bind:class="`text-error h-5 mb-2 text-center w-full ${error ? `visible` : `invisible`}`"
       ></div>
 
@@ -186,6 +186,10 @@
                   x-bind:data-jdenticon-value="getCell(i).playerId"
                 ></svg>
               </div>
+              <div
+                x-show="error?.idx == i"
+                class="absolute top-0 left-0 w-full h-full bg-red-600 animate-out fade-out duration-500 fill-mode-forwards"
+              ></div>
               <div x-show="getCell(i).playerId && !getClientCell(i).joining">
                 <div class="absolute top-0 left-0 w-full h-full">
                   <svg
