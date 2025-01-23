@@ -145,7 +145,15 @@
       </div>
 
       <div class="flex flex-row items-center gap-2 mt-2 w-full">
+        <div class="w-16 ml-2 text-2xs font-mono flex flex-col items-center">
+          <div class="">
+            <span x-text="String(roomState.roundNum).padStart(3, '0')"></span
+            >/<span
+              x-text="String(roomState.maxRounds).padStart(3, '0')"
+            ></span>
+          </div>
         <div class="w-3 ml-2">🕚</div>
+        </div>
         <div class="flex-1">
           <progress
             x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')}`"
@@ -153,16 +161,16 @@
             x-bind:value="msRemaining"
           ></progress>
         </div>
-        <div class="relative w-20 h-8 mr-2">
+        <div class="relative w-20 h-8 mr-2 text-2xs font-mono">
           <svg
             class="size-8 absolute top-0 left-0"
             x-show="auth"
             x-bind:data-jdenticon-value="auth?.id"
           ></svg>
-          <div class="absolute top-0 right-0 text-xs font-mono">
+          <div class="absolute top-0 right-0">
             💎<span x-text="String(playerState.shards).padStart(4, '0')"></span>
           </div>
-          <div class="absolute bottom-0 right-0 text-xs font-mono">
+          <div class="absolute bottom-0 right-0">
             ❤️<span x-text="String(playerState.health).padStart(4, '0')"></span>
           </div>
         </div>
