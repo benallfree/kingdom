@@ -151,17 +151,17 @@
           x-bind:max="roomState.roundTtl"
           x-bind:value="msRemaining"
         ></progress>
-        <div class="relative w-16 h-8">
+        <div class="relative w-20 h-8">
           <svg
             class="size-8 absolute top-0 left-0"
             x-show="auth"
             x-bind:data-jdenticon-value="auth?.id"
           ></svg>
-          <div class="absolute top-0 right-0 text-xs">
-            ⚒️<span x-text="playerState.coins"></span>
+          <div class="absolute top-0 right-0 text-xs font-mono">
+            💎<span x-text="String(playerState.coins).padStart(4, '0')"></span>
           </div>
-          <div class="absolute bottom-0 right-0 text-xs">
-            ❤️<span x-text="playerState.health"></span>
+          <div class="absolute bottom-0 right-0 text-xs font-mono">
+            ❤️<span x-text="String(playerState.health).padStart(4, '0')"></span>
           </div>
         </div>
       </div>
