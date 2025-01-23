@@ -39,7 +39,7 @@ const setRoomState = (state, dao = $app) => {
   dao.save(room)
 }
 
-const pushRoomState = (roomId, state, extraFilter = (client) => true) => {
+const pushRoomStateDelta = (roomId, state, extraFilter = (client) => true) => {
   const key = `rooms/${roomId}/delta`
   const serializedState = JSON.stringify(state)
   // const {dbg} = require('pocketpages')
@@ -82,6 +82,6 @@ const sanitizeRoomState = (state, user) => {
 module.exports = {
   getRoomState,
   setRoomState,
-  pushRoomState,
+  pushRoomStateDelta,
   sanitizeRoomState,
 }

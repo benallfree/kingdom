@@ -9,7 +9,7 @@
     throw new BadRequestError('Missing idx')
   }
 
-  const { getRoomState, setRoomState, pushRoomState } = resolve('room')
+  const { getRoomState, setRoomState, pushRoomStateDelta } = resolve('room')
 
   let roomState = {}
   let error = null
@@ -50,7 +50,7 @@
       [`grid.${idx}.playerId`]: auth.id,
       [`roundStartedAt`]: roomState.roundStartedAt,
     }
-    pushRoomState(
+    pushRoomStateDelta(
       `2ruk2zo3x8k11h5`,
       delta,
       (client) => client.get('auth').id !== auth.id
@@ -59,7 +59,7 @@
     delta[`grid.${idx}.health`] = roomState.grid[idx].health
     delta[`players.${auth.id}.shards`] = roomState.players[auth.id].shards
     delta[`players.${auth.id}.health`] = roomState.players[auth.id].health
-    pushRoomState(
+    pushRoomStateDelta(
       `2ruk2zo3x8k11h5`,
       delta,
       (client) => client.get('auth').id === auth.id
