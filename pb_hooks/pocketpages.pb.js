@@ -1739,7 +1739,7 @@ var require_package = __commonJS({
         "engine",
         "ejs"
       ],
-      version: "3.1.10003",
+      version: "3.1.10004",
       author: "Matthew Eernisse <mde@fleegix.org> (http://fleegix.org)",
       license: "Apache-2.0",
       main: "./lib/ejs.js",
@@ -1906,21 +1906,33 @@ var require_ejs = __commonJS({
       }
       return handleCache(opts);
     }
-    function rethrow(err, str, flnm, lineno, esc) {
-      var lines = str.split("\n");
-      var start = Math.max(lineno - 3, 0);
-      var end = Math.min(lines.length, lineno + 3);
-      var filename = esc(flnm);
-      var context = lines.slice(start, end).map(function(line, i) {
-        var curr = i + start + 1;
-        return (curr == lineno ? " >> " : "    ") + curr + "| " + line;
-      }).join("\n");
-      try {
-        err.path = filename;
-        err.message = (filename || "ejs") + ":" + lineno + "\n" + context + "\n\n" + err.message;
-      } catch (e) {
+    function extractLineAndCol(stack) {
+      const match = stack.match(/anonymous \(<eval>:(\d+):(\d+)/);
+      if (match) {
+        return {
+          line: parseInt(match[1]),
+          col: parseInt(match[2])
+        };
       }
-      throw err;
+      return null;
+    }
+    function rethrow(err, str, flnm, lineno, esc, prependLines) {
+      const { line, col } = extractLineAndCol(err.stack);
+      const realLineNo = line - prependLines - lineno + 1;
+      console.log(`lineno`, lineno, `prependLines`, prependLines, `line`, line, `realLineNo`, realLineNo);
+      console.log(err.stack);
+      var lines = str.split("\n");
+      var start = Math.max(realLineNo - 30, 0);
+      var end = Math.min(lines.length, realLineNo + 3);
+      var filename = esc(flnm);
+      var context = lines.slice(start, end).map(function(line2, i) {
+        var curr = i + start + 1;
+        return (curr == realLineNo ? " >> " : "    ") + curr + "| " + line2;
+      }).join("\n");
+      const newErr = new Error((filename || "ejs") + ":" + realLineNo + "\n" + context + "\n\n" + err.message);
+      newErr.path = filename;
+      newErr.originalError = err;
+      throw newErr;
     }
     function stripSemi(str) {
       return str.replace(/;(\s*$)/, "$1");
@@ -2083,7 +2095,10 @@ var require_ejs = __commonJS({
           this.source = prepended + this.source + appended;
         }
         if (opts.compileDebug) {
-          src = "var __line = 1\n  , __lines = " + JSON.stringify(this.templateText) + "\n  , __filename = " + sanitizedFilename + ";\ntry {\n" + this.source + "} catch (e) {\n  rethrow(e, __lines, __filename, __line, escapeFn);\n}\n";
+          src = "var __line = 1\n  , __lines = " + JSON.stringify(this.templateText) + "\n  , __filename = " + sanitizedFilename + ";\ntry {\n" + this.source + `} catch (e) {
+  rethrow(e, __lines, __filename, __line, escapeFn, ${prepended.split("\n").length + 4});
+}
+`;
         } else {
           src = this.source;
         }
@@ -5224,6 +5239,7 @@ __export(src_exports, {
   MiddlewareHandler: () => MiddlewareHandler,
   findRecordByFilter: () => findRecordByFilter,
   findRecordsByFilter: () => findRecordsByFilter,
+  globalApi: () => globalApi,
   log: () => log3,
   stringify: () => import_pocketbase_stringify6.stringify,
   v23MiddlewareWrapper: () => v23MiddlewareWrapper
@@ -5235,6 +5251,72 @@ init_cjs_shims();
 init_cjs_shims();
 
 // src/lib/pages/providers/v23Provider/index.ts
+init_cjs_shims();
+var v23Provider = () => ({
+  boot: () => {
+    onBootstrap((e) => {
+      e.next();
+      if (!require.isOverridden) {
+        const oldRequire = require;
+        require = (path3) => {
+          try {
+            if (path3 === "pocketpages") {
+              return require(`${__hooks}/pocketpages.pb`).globalApi;
+            }
+            return oldRequire(path3);
+          } catch (e2) {
+            const errorMsg = `${e2}`;
+            if (errorMsg.includes("Invalid module")) {
+              throw new Error(
+                `${path3} is not a valid module. Did you mean resolve()?`
+              );
+            }
+            throw e2;
+          }
+        };
+        require.isOverridden = true;
+      }
+      require(`${__hooks}/pocketpages.pb`).AfterBootstrapHandler();
+    });
+    routerUse((e) => {
+      if (!require.isOverridden) {
+        const oldRequire = require;
+        require = (path3) => {
+          try {
+            if (path3 === "pocketpages") {
+              return require(`${__hooks}/pocketpages.pb`).globalApi;
+            }
+            return oldRequire(path3);
+          } catch (e2) {
+            const errorMsg = `${e2}`;
+            if (errorMsg.includes("Invalid module")) {
+              throw new Error(
+                `${path3} is not a valid module. Did you mean resolve()?`
+              );
+            }
+            throw e2;
+          }
+        };
+        require.isOverridden = true;
+      }
+      return require(`${__hooks}/pocketpages.pb`).v23MiddlewareWrapper(e);
+    });
+  }
+});
+
+// src/lib/pages/index.ts
+var is22 = `refreshSettings` in $app;
+var getPagesProvider = () => v23Provider();
+
+// src/lib/types.ts
+init_cjs_shims();
+
+// src/main.ts
+init_cjs_shims();
+var log3 = __toESM(require_dist2());
+var import_pocketbase_stringify6 = __toESM(require_dist());
+
+// src/globalApi.ts
 init_cjs_shims();
 
 // node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
@@ -5302,7 +5384,7 @@ function pick(object, ...paths) {
   return result;
 }
 
-// src/lib/pages/providers/v23Provider/index.ts
+// src/globalApi.ts
 var log = __toESM(require_dist2());
 var import_pocketbase_stringify = __toESM(require_dist());
 var globalApi = {
@@ -5313,69 +5395,6 @@ var globalApi = {
   merge,
   ...log
 };
-var v23Provider = () => ({
-  boot: () => {
-    onBootstrap((e) => {
-      e.next();
-      if (!require.isOverridden) {
-        const oldRequire = require;
-        require = (path3) => {
-          try {
-            if (path3 === "pocketpages") {
-              return globalApi;
-            }
-            return oldRequire(path3);
-          } catch (e2) {
-            const errorMsg = `${e2}`;
-            if (errorMsg.includes("Invalid module")) {
-              throw new Error(
-                `${path3} is not a valid module. Did you mean resolve()?`
-              );
-            }
-            throw e2;
-          }
-        };
-        require.isOverridden = true;
-      }
-      require(`${__hooks}/pocketpages.pb`).AfterBootstrapHandler();
-    });
-    routerUse((e) => {
-      if (!require.isOverridden) {
-        const oldRequire = require;
-        require = (path3) => {
-          try {
-            if (path3 === "pocketpages") {
-              return globalApi;
-            }
-            return oldRequire(path3);
-          } catch (e2) {
-            const errorMsg = `${e2}`;
-            if (errorMsg.includes("Invalid module")) {
-              throw new Error(
-                `${path3} is not a valid module. Did you mean resolve()?`
-              );
-            }
-            throw e2;
-          }
-        };
-        require.isOverridden = true;
-      }
-      return require(`${__hooks}/pocketpages.pb`).v23MiddlewareWrapper(e);
-    });
-  }
-});
-
-// src/lib/pages/index.ts
-var is22 = `refreshSettings` in $app;
-var getPagesProvider = () => v23Provider();
-
-// src/lib/types.ts
-init_cjs_shims();
-
-// src/main.ts
-init_cjs_shims();
-var log3 = __toESM(require_dist2());
-var import_pocketbase_stringify6 = __toESM(require_dist());
 
 // src/lib/AfterBootstrapHandler.ts
 init_cjs_shims();
@@ -7719,7 +7738,7 @@ var oldCompile = import_pocketbase_ejs.default.compile;
 import_pocketbase_ejs.default.compile = function(template, options2) {
   const newTemplate = template.replace(
     /<script\s+server>([\s\S]*?)<\/script>/,
-    "<% \n $1 \n %>"
+    "<% $1 %>"
   );
   return oldCompile(newTemplate, { ...options2 });
 };
@@ -7784,6 +7803,7 @@ var renderFile = (fname, api) => {
           return __append(result.join(' '))
         }
       `,
+      compileDebug: true,
       async: false,
       cache: $app.isDev(),
       includer: (path3, filename) => {
@@ -8570,6 +8590,7 @@ if (isBooting) {
   MiddlewareHandler,
   findRecordByFilter,
   findRecordsByFilter,
+  globalApi,
   log,
   stringify,
   v23MiddlewareWrapper

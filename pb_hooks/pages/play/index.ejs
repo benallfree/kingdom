@@ -135,23 +135,25 @@
     }
   }"
 >
-  <div class="h-[40px] overflow-hidden">
-    <img
-      src="<%=asset('/splash.webp')%>"
-      class="relative -translate-y-1/2 top-[27px]"
-    />
-  </div>
+  <div x-show="isReady" class="flex flex-col items-center">
+    <div class="flex flex-col items-center max-w-[400px]">
+      <div class="h-[40px] overflow-hidden">
+        <img
+          src="<%=asset('/splash.webp')%>"
+          class="relative -translate-y-1/2 top-[27px]"
+        />
+      </div>
 
-  <div x-show="isReady">
-    <div class="flex flex-col items-center">
-      <div class="flex flex-row items-center gap-2 mt-2">
-        <div class="ml-2 mr-2">🕚</div>
-        <progress
-          x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')} w-72`"
-          x-bind:max="roomState.roundTtl"
-          x-bind:value="msRemaining"
-        ></progress>
-        <div class="relative w-20 h-8">
+      <div class="flex flex-row items-center gap-2 mt-2 w-full">
+        <div class="w-3 ml-2">🕚</div>
+        <div class="flex-1">
+          <progress
+            x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')}`"
+            x-bind:max="roomState.roundTtl"
+            x-bind:value="msRemaining"
+          ></progress>
+        </div>
+        <div class="relative w-20 h-8 mr-2">
           <svg
             class="size-8 absolute top-0 left-0"
             x-show="auth"
@@ -207,10 +209,10 @@
           </template>
         </div>
       </div>
+      <div
+        x-show="roomState.prize?.banner"
+        x-html="roomState.prize?.banner"
+      ></div>
     </div>
-    <div
-      x-show="roomState.prize?.banner"
-      x-html="roomState.prize?.banner"
-    ></div>
   </div>
 </div>

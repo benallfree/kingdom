@@ -87,6 +87,8 @@ type Cache = {
     config: PagesConfig;
 };
 
+declare const globalApi: PagesGlobalApi;
+
 type FilterOptions = {
     filter?: string;
     sort?: string;
@@ -101,4 +103,4 @@ declare const MiddlewareHandler: PagesMiddlewareFunc;
 
 declare const v23MiddlewareWrapper: (e: core.RequestEvent) => void;
 
-export { AfterBootstrapHandler, type Cache, type FilterOptions, MiddlewareHandler, type MiddlewareLoaderFunc, type PageDataLoaderFunc, type PagesApi, type PagesConfig, type PagesGlobalApi, type PagesParams, findRecordByFilter, findRecordsByFilter, v23MiddlewareWrapper };
+export { AfterBootstrapHandler, type Cache, type FilterOptions, MiddlewareHandler, type MiddlewareLoaderFunc, type PageDataLoaderFunc, type PagesApi, type PagesConfig, type PagesGlobalApi, type PagesParams, findRecordByFilter, findRecordsByFilter, globalApi, v23MiddlewareWrapper };
