@@ -7,5 +7,9 @@ export default {
   daisyui: {
     themes: ['black'],
   },
-  plugins: [require('@tailwindcss/typography'), require('daisyui')],
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('daisyui'),
+    require('tailwindcss-animate'),
+  ],
 }
