@@ -1,12 +1,12 @@
-# DaisyUI PocketPages Starter Kit
+# Kingdom
 
-This setup provides a minimal **PocketPages** app integrated with **Tailwind CSS** and **DaisyUI**.
+A realtime multiplayer game built with PocketBase, PocketPages, Alpine.js, Tailwind CSS, and hosted on pockethost.io.
 
-## Installation
+https://kingdom.pockethost.io
 
-```bash
-npx tiged benallfree/pocketpages/starters/daisyui .
-cd daisyui
-npm i
-npm run dev
-```
+# TODO
+
+- Round phases
+  - Placement
+  - Assignment
+  - Action
