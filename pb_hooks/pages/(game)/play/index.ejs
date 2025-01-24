@@ -191,7 +191,7 @@
     join(idx) {
       this.error = null
       this.getClientCell(idx).busy = true
-      pb.send(`/api/join/idx=${idx}`, { requestKey: this.uniqId() })
+      pb.send(`/api/join/${idx}`, { requestKey: this.uniqId() })
         .then((res) => {
           this.error = res.error
         })
