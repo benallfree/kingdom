@@ -49,7 +49,7 @@
     getClientCell(idx) {
       if (!this.clientRoomState.grid[idx]) {
         this.clientRoomState.grid[idx] = {
-          joining: false,
+          busy: false,
         }
       }
       return this.clientRoomState.grid[idx]
@@ -129,7 +129,7 @@
     },
     join(idx) {
       this.error = null
-      this.getClientCell(idx).joining = true
+      this.getClientCell(idx).busy = true
       pb.send(`/api/join/idx=${idx}`, { requestKey: this.uniqId() })
         .then((res) => {
           this.error = res.error
@@ -138,7 +138,7 @@
           this.error = { message: e.message, idx }
         })
         .finally(() => {
-          this.getClientCell(idx).joining = false
+          this.getClientCell(idx).busy = false
         })
     },
     init() {
@@ -276,15 +276,6 @@
               x-on:click="handleCellClick(i)"
             >
               <div
-                x-show="getClientCell(i).joining"
-                class="absolute top-0 left-0 w-full h-full animate-spin"
-              >
-                <svg
-                  class="w-full h-full"
-                  x-bind:data-jdenticon-value="auth?.id"
-                ></svg>
-              </div>
-              <div
                 x-show="error?.idx == i"
                 class="absolute top-0 left-0 w-full h-full bg-red-600 animate-out fade-out duration-500 fill-mode-forwards"
               ></div>
@@ -322,6 +313,15 @@
                 x-text="getClientCell(i).attackedBy?.length"
                 class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 animate-pulse flex items-center justify-center"
               ></div>
+              <div
+                x-show="getClientCell(i).busy"
+                class="absolute top-0 left-0 w-full h-full animate-spin"
+              >
+                <svg
+                  class="w-full h-full"
+                  x-bind:data-jdenticon-value="auth?.id"
+                ></svg>
+              </div>
             </div>
           </template>
         </div>
