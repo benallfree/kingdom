@@ -1,5 +1,11 @@
 # kingdom
 
+## 0.0.7
+
+### Patch Changes
+
+- Cosmetic changes and join security improvements
+
 ## 0.0.6
 
 ### Patch Changes
