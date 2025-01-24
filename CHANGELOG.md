@@ -1,5 +1,11 @@
 # kingdom
 
+## 0.0.8
+
+### Patch Changes
+
+- 240257d: Feat: assignment phase
+
 ## 0.0.7
 
 ### Patch Changes
