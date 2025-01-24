@@ -78,26 +78,28 @@
       const hasPrize = roomState.prizeIdx == idx
       roomState.grid[idx].hasPrize = hasPrize
 
-      const delta = {
+      const publicDelta = {
         [`grid.${idx}.playerId`]: auth.id,
         [`roundStartedAt`]: roomState.roundStartedAt,
       }
       deferred.push(() => {
         pushRoomStateDelta(
           `2ruk2zo3x8k11h5`,
-          delta,
+          publicDelta,
           (client) => client.get('auth').id !== auth.id
         )
       })
 
-      delta[`grid.${idx}.hasPrize`] = hasPrize
-      delta[`grid.${idx}.health`] = roomState.grid[idx].health
-      delta[`players.${auth.id}.shards`] = roomState.players[auth.id].shards
-      delta[`players.${auth.id}.health`] = roomState.players[auth.id].health
+      const privateDelta = {
+        [`grid.${idx}.hasPrize`]: hasPrize,
+        [`grid.${idx}.health`]: roomState.grid[idx].health,
+        [`players.${auth.id}.shards`]: roomState.players[auth.id].shards,
+        [`players.${auth.id}.health`]: roomState.players[auth.id].health,
+      }
       deferred.push(() => {
         pushRoomStateDelta(
           `2ruk2zo3x8k11h5`,
-          delta,
+          { ...publicDelta, ...privateDelta },
           (client) => client.get('auth').id === auth.id
         )
       })
