@@ -1,87 +1,33 @@
-<div
-  x-init="
-    const watch = (()=>{
-      let unsub
-      return ()=>{
-        unsub?.()
-        unsub = pb.realtime.subscribe(`rooms/2ruk2zo3x8k11h5/delta`, (e) => {
-          Object.entries(e).forEach(([key, value]) => {
-            let node = roomState
-            const keys = key.split('.')
-            const leafKey = keys.pop()
-            const leafValue = value
-            const leafNode = keys.reduce((node, k) => {
-              if(!node[k]) {
-                node[k] = {}
-              }
-              return node[k]
-            }, roomState)
-            leafNode[leafKey] = leafValue
-          })
-        })
-      }
-    })()
-    const login = ()=> {
-      pb.send(`/api/login`).then(res => {
-        const {token, user} = res
-        pb.authStore.save(token, user)
-        isReady = true
-        auth = user
-        $nextTick(jdenticon)
-        roomState = normalizeRoomState(res.roomState)
-        watch()
-      })
-    }
-    login()
-    pb.realtime.subscribe('PB_CONNECT', (e) => {
-      // login()
+<script>
+  const applyDeltas = (e, roomState) => {
+    Object.entries(e).forEach(([key, value]) => {
+      let node = roomState
+      const keys = key.split('.')
+      const leafKey = keys.pop()
+      const leafValue = value
+      const leafNode = keys.reduce((node, k) => {
+        if (!node[k]) {
+          node[k] = {}
+        }
+        return node[k]
+      }, roomState)
+      leafNode[leafKey] = leafValue
     })
+  }
 
-   
-    $watch('roomState', value => {
-      $nextTick(jdenticon)
-    })
-    const calcTimeRemaining = (roomState) => {
-      msRemaining = Math.max(0, roomState.roundStartedAt + roomState.roundTtl - Date.now())
-      pctRemaining = msRemaining / roomState.roundTtl
+  const normalizeRoomState = (roomState) => {
+    for (let i = 1; i <= 100; i++) {
+      roomState.grid[i] = {
+        playerId: null,
+        hasPrize: this.prizeIdx == i,
+        health: 0,
+        ...roomState.grid[i],
+      }
     }
-    $watch('roomState', calcTimeRemaining, value => {
-      const { msRemaining, pctRemaining } = calcTimeRemaining(value)
-      msRemaining = msRemaining
-      pctRemaining = pctRemaining
-    })
-    $watch('roomState', value => {
-      if (!auth ) return
-      playerState = value.players[auth.id] || { shards: 10, health: 0 }
-    })
-    $watch('roomState', value => {
-      const cellEntries = Object.entries(value.grid)
-      for(let i = 0; i < cellEntries.length; i++) {
-        const [idx, cell] = cellEntries[i]
-        if(cell.hasPrize) {
-          prizeIdx =idx
-          break
-        }
-      }
-    })
-    $nextTick(() => {
-      setInterval(() => {
-        calcTimeRemaining(roomState)
-      }, 100)
-    })
-    "
-  x-data="{
-    normalizeRoomState(roomState) {
-      for(let i = 1; i <= 100; i++) {
-        roomState.grid[i] = {
-          playerId: null,
-          hasPrize: this.prizeIdx == i,
-          health: 0,
-          ...roomState.grid[i]
-        }
-      }
-      return roomState
-    },
+    return roomState
+  }
+
+  const gameState = {
     error: null,
     prizeIdx: null,
     msRemaining: 0,
@@ -92,7 +38,7 @@
       if (!this.roomState.grid[idx]) {
         this.roomState.grid[idx] = {
           playerId: null,
-          health: 0
+          health: 0,
         }
       }
       return this.roomState.grid[idx]
@@ -100,7 +46,7 @@
     getClientCell(idx) {
       if (!this.clientRoomState.grid[idx]) {
         this.clientRoomState.grid[idx] = {
-          joining: false
+          joining: false,
         }
       }
       return this.clientRoomState.grid[idx]
@@ -111,14 +57,14 @@
       roundNum: 0,
       roundStartedAt: +new Date(),
       maxRounds: 0,
-      roundTtl: 0
+      roundTtl: 0,
     },
     clientRoomState: {
-      grid: {}
+      grid: {},
     },
     playerState: {
       shards: 10,
-      health: 0
+      health: 0,
     },
     idBase: 0,
     uniqId() {
@@ -127,14 +73,82 @@
     join(idx) {
       this.error = null
       this.getClientCell(idx).joining = true
-      pb.send(`/api/join?idx=${idx}`, { requestKey: this.uniqId()}).then(res => {
-        this.error = res.error
-      }).finally(() => {
-        this.getClientCell(idx).joining = false
+      pb.send(`/api/join?idx=${idx}`, { requestKey: this.uniqId() })
+        .then((res) => {
+          this.error = res.error
+        })
+        .finally(() => {
+          this.getClientCell(idx).joining = false
+        })
+    },
+    init() {
+      const watch = (() => {
+        let unsub
+        return () => {
+          unsub?.()
+          unsub = pb.realtime.subscribe(`rooms/2ruk2zo3x8k11h5/delta`, (e) => {
+            applyDeltas(e, this.roomState)
+          })
+        }
+      })()
+      const login = () => {
+        pb.send(`/api/login`).then((res) => {
+          const { token, user } = res
+          pb.authStore.save(token, user)
+          this.auth = user
+          this.$nextTick(jdenticon)
+          this.roomState = normalizeRoomState(res.roomState)
+          this.isReady = true
+          watch()
+        })
+      }
+      login()
+      pb.realtime.subscribe('PB_CONNECT', (e) => {
+        // login()
       })
-    }
-  }"
->
+
+      this.$watch('roomState', (value) => {
+        this.$nextTick(jdenticon)
+      })
+      const calcTimeRemaining = (roomState) => {
+        this.msRemaining = Math.max(
+          0,
+          this.roomState.roundStartedAt + this.roomState.roundTtl - Date.now()
+        )
+        this.pctRemaining = this.msRemaining / this.roomState.roundTtl
+      }
+      this.$watch('roomState', calcTimeRemaining, (value) => {
+        const { msRemaining, pctRemaining } = calcTimeRemaining(value)
+        this.msRemaining = msRemaining
+        this.pctRemaining = pctRemaining
+      })
+      this.$watch('roomState', (value) => {
+        if (!this.auth) return
+        this.playerState = value.players[this.auth.id] || {
+          shards: 10,
+          health: 0,
+        }
+      })
+      this.$watch('roomState', (value) => {
+        const cellEntries = Object.entries(value.grid)
+        for (let i = 0; i < cellEntries.length; i++) {
+          const [idx, cell] = cellEntries[i]
+          if (cell.hasPrize) {
+            this.prizeIdx = idx
+            break
+          }
+        }
+      })
+      this.$nextTick(() => {
+        setInterval(() => {
+          calcTimeRemaining(this.roomState)
+        }, 100)
+      })
+    },
+  }
+</script>
+
+<div x-data="gameState">
   <div x-show="isReady" class="flex flex-col items-center">
     <div class="flex flex-col items-center max-w-[400px]">
       <div class="h-[40px] overflow-hidden">
@@ -152,7 +166,7 @@
               x-text="String(roomState.maxRounds).padStart(3, '0')"
             ></span>
           </div>
-        <div class="w-3 ml-2">🕚</div>
+          <div class="w-3 ml-2">🕚</div>
         </div>
         <div class="flex-1">
           <progress
