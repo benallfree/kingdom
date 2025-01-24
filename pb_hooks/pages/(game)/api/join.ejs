@@ -9,14 +9,13 @@
     throw new BadRequestError('Missing idx')
   }
 
-  const { getRoomState, setRoomState, pushRoomStateDelta } = resolve('room')
+  const stepGuard = (roomState) => {
+    if (roomState.step === 'placement') return true
+    error = { message: `You can't do that right now.`, idx }
+    return
+  }
 
-  let roomState = {}
-  let error = null
-
-  $app.runInTransaction((txApp) => {
-    roomState = getRoomState(txApp)
-
+  const cellIsOwnedOrEmptyGuard = (roomState) => {
     if (
       roomState.grid[idx]?.playerId &&
       roomState.grid[idx].playerId !== auth.id
@@ -24,6 +23,10 @@
       error = { message: `Cell is occupied`, idx }
       return
     }
+    return true
+  }
+
+  const playerHasEnoughShardsGuard = (roomState) => {
     if (!roomState.players[auth.id]) {
       roomState.players[auth.id] = { shards: 10, health: 0 }
     }
@@ -32,39 +35,68 @@
       error = { message: `Not enough shards`, idx }
       return
     }
-    roomState.players[auth.id].shards -= 1
-    roomState.players[auth.id].health += 1
+    return true
+  }
 
-    if (!roomState.grid[idx]) {
-      roomState.grid[idx] = { playerId: auth.id, health: 0 }
-    }
-    roomState.grid[idx].health += 1
-    roomState.roundStartedAt = Date.now()
-
-    setRoomState(roomState, txApp)
-
-    const hasPrize = roomState.prizeIdx == idx
-    roomState.grid[idx].hasPrize = hasPrize
-
-    const delta = {
-      [`grid.${idx}.playerId`]: auth.id,
-      [`roundStartedAt`]: roomState.roundStartedAt,
-    }
-    pushRoomStateDelta(
-      `2ruk2zo3x8k11h5`,
-      delta,
-      (client) => client.get('auth').id !== auth.id
+  const shouldAttemptJoin = (roomState) => {
+    return (
+      stepGuard(roomState) &&
+      cellIsOwnedOrEmptyGuard(roomState) &&
+      playerHasEnoughShardsGuard(roomState)
     )
-    delta[`grid.${idx}.hasPrize`] = hasPrize
-    delta[`grid.${idx}.health`] = roomState.grid[idx].health
-    delta[`players.${auth.id}.shards`] = roomState.players[auth.id].shards
-    delta[`players.${auth.id}.health`] = roomState.players[auth.id].health
-    pushRoomStateDelta(
-      `2ruk2zo3x8k11h5`,
-      delta,
-      (client) => client.get('auth').id === auth.id
-    )
-  })
+  }
 
+  const { getRoomState, setRoomState, pushRoomStateDelta } = resolve('room')
+
+  let roomState = {}
+  let error = null
+  roomState = getRoomState($app)
+
+  if (shouldAttemptJoin(roomState)) {
+    const deferred = []
+    $app.runInTransaction((txApp) => {
+      roomState = getRoomState(txApp)
+      if (!shouldAttemptJoin(roomState)) return
+
+      roomState.players[auth.id].shards -= 1
+      roomState.players[auth.id].health += 1
+
+      if (!roomState.grid[idx]) {
+        roomState.grid[idx] = { playerId: auth.id, health: 0 }
+      }
+      roomState.grid[idx].health += 1
+      roomState.roundStartedAt = Date.now()
+
+      setRoomState(roomState, txApp)
+
+      const hasPrize = roomState.prizeIdx == idx
+      roomState.grid[idx].hasPrize = hasPrize
+
+      const delta = {
+        [`grid.${idx}.playerId`]: auth.id,
+        [`roundStartedAt`]: roomState.roundStartedAt,
+      }
+      deferred.push(() => {
+        pushRoomStateDelta(
+          `2ruk2zo3x8k11h5`,
+          delta,
+          (client) => client.get('auth').id !== auth.id
+        )
+      })
+
+      delta[`grid.${idx}.hasPrize`] = hasPrize
+      delta[`grid.${idx}.health`] = roomState.grid[idx].health
+      delta[`players.${auth.id}.shards`] = roomState.players[auth.id].shards
+      delta[`players.${auth.id}.health`] = roomState.players[auth.id].health
+      deferred.push(() => {
+        pushRoomStateDelta(
+          `2ruk2zo3x8k11h5`,
+          delta,
+          (client) => client.get('auth').id === auth.id
+        )
+      })
+    })
+    deferred.forEach((fn) => fn())
+  }
   return { error }
 </script>
