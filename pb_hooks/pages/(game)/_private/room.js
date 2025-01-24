@@ -75,10 +75,11 @@ const sanitizeRoomState = (state, user) => {
       delete state.grid[idx]
     }
   })
-  const player = state.players[user.id]
-  delete state.players
-  state.players = { [user.id]: player }
+
   delete state.prizeIdx
+  const player = state.players[user.id]
+  state.players = { [user.id]: player }
+
   return state
 }
 
