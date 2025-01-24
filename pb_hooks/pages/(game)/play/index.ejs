@@ -134,6 +134,9 @@
         .then((res) => {
           this.error = res.error
         })
+        .catch((e) => {
+          this.error = { message: e.message, idx }
+        })
         .finally(() => {
           this.getClientCell(idx).joining = false
         })
