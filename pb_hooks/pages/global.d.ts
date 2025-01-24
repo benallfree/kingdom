@@ -17,9 +17,11 @@ type RoomState = {
   roundNum: number
   roundStartedAt: number
   maxRounds: number
-  roundTtl: number
+  step: 'placement' | 'assignment' | 'resolution'
+  stepStartedAt: number
+  stepTtl: number
 }
 
 type ClientRoomState = {
-  grid: Record<string, CellState & { joining: boolean }>
+  grid: Record<string, CellState & { joining: boolean; attackedBy: string[] }>
 }

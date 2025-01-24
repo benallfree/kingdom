@@ -15,6 +15,38 @@
     })
   }
 
+  const gatherNeighbors = (idx) => {
+    const neighbors = []
+    const row = Math.ceil(idx / 10)
+    const col = ((idx - 1) % 10) + 1
+
+    // Add left neighbor if not on left edge
+    if (col > 1) neighbors.push(idx - 1)
+
+    // Add right neighbor if not on right edge
+    if (col < 10) neighbors.push(idx + 1)
+
+    // Add top neighbor if not on top edge
+    if (row > 1) neighbors.push(idx - 10)
+
+    // Add bottom neighbor if not on bottom edge
+    if (row < 10) neighbors.push(idx + 10)
+
+    // Add diagonal neighbors
+    // Top-left diagonal
+    if (row > 1 && col > 1) neighbors.push(idx - 11)
+
+    // Top-right diagonal
+    if (row > 1 && col < 10) neighbors.push(idx - 9)
+
+    // Bottom-left diagonal
+    if (row < 10 && col > 1) neighbors.push(idx + 9)
+
+    // Bottom-right diagonal
+    if (row < 10 && col < 10) neighbors.push(idx + 11)
+    return neighbors
+  }
+
   const normalizeRoomState = (roomState) => {
     for (let i = 1; i <= 100; i++) {
       roomState.grid[i] = {
@@ -34,6 +66,7 @@
     pctRemaining: 0,
     auth: null,
     isReady: false,
+    selectedIdx: null,
     getCell(idx) {
       if (!this.roomState.grid[idx]) {
         this.roomState.grid[idx] = {
@@ -56,6 +89,9 @@
       players: {},
       roundNum: 0,
       roundStartedAt: +new Date(),
+      step: 'placement',
+      stepStartedAt: +new Date(),
+      stepTtl: 1000 * 60 * 5,
       maxRounds: 0,
       roundTtl: 0,
     },
@@ -69,6 +105,57 @@
     idBase: 0,
     uniqId() {
       return this.idBase++
+    },
+    actionableNeighbors: [],
+    playerOwnsCell(idx) {
+      return this.roomState.grid[idx].playerId == this.auth.id
+    },
+    isOpponentCell(idx) {
+      return (
+        this.roomState.grid[idx].playerId &&
+        this.roomState.grid[idx].playerId !== this.auth.id
+      )
+    },
+    gatherNeighborOpponents(idx) {
+      return gatherNeighbors(idx).filter((idx) => this.isOpponentCell(idx))
+    },
+    toggleNeighborAttack(idx) {
+      if (!this.clientRoomState.grid[idx].attackedBy) {
+        this.clientRoomState.grid[idx].attackedBy = []
+      }
+      if (
+        this.clientRoomState.grid[idx].attackedBy.includes(this.selectedIdx)
+      ) {
+        this.clientRoomState.grid[idx].attackedBy = this.clientRoomState.grid[
+          idx
+        ].attackedBy.filter((id) => id !== this.selectedIdx)
+      } else {
+        this.clientRoomState.grid[idx].attackedBy.push(this.selectedIdx)
+      }
+      this.clientRoomState.grid[idx].isBeingAttacked =
+        this.clientRoomState.grid[idx].attackedBy.length > 0
+    },
+    handleCellClick(idx) {
+      if (this.roomState.step == 'placement') {
+        this.join(idx)
+      }
+      if (this.roomState.step == 'assignment') {
+        if (this.playerOwnsCell(idx)) {
+          this.selectedIdx = idx
+          this.actionableNeighbors = this.gatherNeighborOpponents(idx)
+        } else {
+          if (this.selectedIdx) {
+            if (this.actionableNeighbors.includes(idx)) {
+              this.toggleNeighborAttack(idx)
+            } else {
+              this.selectedIdx = null
+              this.actionableNeighbors = []
+            }
+          } else {
+            this.error = { message: `Select your own cell`, idx }
+          }
+        }
+      }
     },
     join(idx) {
       this.error = null
@@ -113,9 +200,9 @@
       const calcTimeRemaining = (roomState) => {
         this.msRemaining = Math.max(
           0,
-          this.roomState.roundStartedAt + this.roomState.roundTtl - Date.now()
+          this.roomState.stepStartedAt + this.roomState.stepTtl - Date.now()
         )
-        this.pctRemaining = this.msRemaining / this.roomState.roundTtl
+        this.pctRemaining = this.msRemaining / this.roomState.stepTtl
       }
       this.$watch('roomState', calcTimeRemaining, (value) => {
         const { msRemaining, pctRemaining } = calcTimeRemaining(value)
@@ -159,19 +246,33 @@
       </div>
 
       <div class="flex flex-row items-center gap-2 mt-2 w-full">
-        <div class="w-16 ml-2 text-2xs font-mono flex flex-col items-center">
+        <div
+          class="w-16 ml-2 text-2xs font-mono flex flex-row items-center gap-1"
+        >
+          <div
+            class="border border-1 border-primary rounded relative w-4 h-4 flex items-center justify-center"
+          >
+            <div x-show="roomState.step == 'placement'" class="animate-pulse">
+              📍
+            </div>
+            <div x-show="roomState.step == 'assignment'" class="animate-pulse">
+              🎯
+            </div>
+            <div x-show="roomState.step == 'resolution'" class="animate-pulse">
+              ⚖️
+            </div>
+          </div>
           <div class="">
             <span x-text="String(roomState.roundNum).padStart(3, '0')"></span
             >/<span
               x-text="String(roomState.maxRounds).padStart(3, '0')"
             ></span>
           </div>
-          <div class="w-3 ml-2">🕚</div>
         </div>
         <div class="flex-1">
           <progress
             x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')}`"
-            x-bind:max="roomState.roundTtl"
+            x-bind:max="roomState.stepTtl"
             x-bind:value="msRemaining"
           ></progress>
         </div>
@@ -199,7 +300,7 @@
           <template x-for="i in 100">
             <div
               class="w-10 h-10 border border-primary border-1 relative"
-              x-on:click="join(i)"
+              x-on:click="handleCellClick(i)"
             >
               <div
                 x-show="getClientCell(i).joining"
@@ -230,6 +331,23 @@
               <div
                 x-show="getCell(i).hasPrize"
                 class="absolute top-0 left-0 w-full h-full bg-yellow-300 animate-[pulse_1s_ease-in-out_infinite]"
+              ></div>
+              <div
+                x-show="selectedIdx == i"
+                class="absolute top-0 left-0 w-full h-full border-2 border-green-600 animate-pulse"
+              ></div>
+              <div
+                x-show="actionableNeighbors.includes(i)"
+                class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
+              ></div>
+              <div
+                x-show="getClientCell(i).isBeingAttacked"
+                class="absolute top-0 left-0 w-full h-full border-2 border-red-600 bg-red-600 animate-pulse"
+              ></div>
+              <div
+                x-show="getClientCell(i).attackedBy?.length"
+                x-text="getClientCell(i).attackedBy?.length"
+                class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 animate-pulse flex items-center justify-center"
               ></div>
             </div>
           </template>

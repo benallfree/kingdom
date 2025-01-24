@@ -4,10 +4,13 @@ const getRoomState = (dao = $app) => {
   const normalizedState = {
     grid: {},
     players: {},
-    roundNum: 0,
-    roundStartedAt: +new Date(),
+    roundNum: 1,
     maxRounds: 10,
-    roundTtl: 1000 * 60 * 5,
+    roundStartedAt: +new Date(),
+    step: 'placement',
+    stepStartedAt: +new Date(),
+    stepTtl: 1000 * 60 * 5000,
+    maxRounds: 10,
     prizeIdx: Math.floor(Math.random() * 100) + 1,
     prizeDescription:
       'One of these cells has 0.00018 BTC. Find it and defend it from other players.',
