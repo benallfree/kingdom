@@ -13,6 +13,7 @@
     "concurrently": "^9.1.2",
     "daisyui": "^4.12.23",
     "prettier": "^3.4.2",
+    "prettier-plugin-ejs": "^1.0.3",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -20,6 +21,9 @@
     "instanceId": "kingdom"
   },
   "prettier": {
+    "plugins": [
+      "prettier-plugin-ejs"
+    ],
     "trailingComma": "es5",
     "semi": false,
     "singleQuote": true,
