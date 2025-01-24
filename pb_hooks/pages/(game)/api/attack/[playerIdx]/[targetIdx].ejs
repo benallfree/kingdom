@@ -1,0 +1,110 @@
+<script server>
+  if (!auth) {
+    throw new BadRequestError('Unauthorized')
+  }
+
+  const playerIdx = parseInt(params.playerIdx)
+  const targetIdx = parseInt(params.targetIdx)
+
+  if (!playerIdx || !targetIdx) {
+    throw new BadRequestError('Missing playerIdx or targetIdx')
+  }
+
+  const stepGuard = (roomState) => {
+    if (roomState.step !== 'assignment') {
+      error = { message: `You can't do that right now.`, idx }
+      return
+    }
+    if (roomState.stepStartedAt + roomState.stepTtl < Date.now()) {
+      error = { message: `Assignment phase has ended.`, idx }
+      return
+    }
+    return true
+  }
+
+  const isPlayerCellOwnedByAuthUser = (roomState) => {
+    if (roomState.grid[playerIdx]?.playerId !== auth.id) {
+      error = { message: `Origin cell is not yours.`, idx: playerIdx }
+      return
+    }
+    return true
+  }
+
+  const isTargetCellOwnedByOtherPlayer = (roomState) => {
+    if (!roomState.grid[targetIdx]?.playerId) {
+      error = { message: `Target cell is empty.`, idx: targetIdx }
+      return
+    }
+    if (roomState.grid[targetIdx]?.playerId === auth.id) {
+      error = { message: `Cannot attack your own cell.`, idx: targetIdx }
+      return
+    }
+    return true
+  }
+
+  const isTargetAdjacentToPlayerCell = () => {
+    const { gatherNeighbors } = resolve('cell-math')
+    const neighbors = gatherNeighbors(playerIdx)
+    dbg({ neighbors, targetIdx, playerIdx })
+    if (!neighbors.includes(targetIdx)) {
+      error = {
+        message: `Target cell is not adjacent to origin cell.`,
+        idx: targetIdx,
+      }
+      return
+    }
+    return true
+  }
+
+  const isAttackAllowed = (roomState) => {
+    return (
+      stepGuard(roomState) &&
+      isTargetAdjacentToPlayerCell() &&
+      isPlayerCellOwnedByAuthUser(roomState, playerIdx) &&
+      isTargetCellOwnedByOtherPlayer(roomState, targetIdx)
+    )
+  }
+
+  const { getRoomState, setRoomState, pushRoomStateDelta } = resolve('room')
+
+  let roomState = {}
+  let error = null
+  roomState = getRoomState($app)
+
+  if (isAttackAllowed(roomState)) {
+    dbg(`Attack is allowed`)
+    const deferred = []
+    $app.runInTransaction((txApp) => {
+      roomState = getRoomState(txApp)
+      if (!isAttackAllowed(roomState)) return
+
+      if (!roomState.grid[targetIdx].attackedBy) {
+        roomState.grid[targetIdx].attackedBy = []
+      }
+      if (roomState.grid[targetIdx].attackedBy.includes(playerIdx)) {
+        roomState.grid[targetIdx].attackedBy = roomState.grid[
+          targetIdx
+        ].attackedBy.filter((id) => id !== playerIdx)
+      } else {
+        roomState.grid[targetIdx].attackedBy.push(playerIdx)
+      }
+
+      setRoomState(roomState, txApp)
+
+      const delta = {
+        [`grid.${targetIdx}.attackedBy`]: roomState.grid[
+          targetIdx
+        ].attackedBy.filter((idx) => roomState.grid[idx]?.playerId === auth.id),
+      }
+      deferred.push(() => {
+        pushRoomStateDelta(
+          `2ruk2zo3x8k11h5`,
+          delta,
+          (client) => client.get('auth').id === auth.id
+        )
+      })
+    })
+    deferred.forEach((fn) => fn())
+  }
+  return { error }
+</script>

@@ -1,5 +1,4 @@
 <%-resolve('cell-math', {mode: 'script'}) %>
-
 <script>
   const applyDeltas = (e, roomState) => {
     Object.entries(e).forEach(([key, value]) => {
@@ -30,6 +29,76 @@
   }
 
   const gameState = {
+    init() {
+      const watch = () => {
+        pb.realtime.subscribe(`rooms/2ruk2zo3x8k11h5/delta`, (e) => {
+          applyDeltas(e, this.roomState)
+        })
+      }
+      const login = () => {
+        pb.send(`/api/login`).then((res) => {
+          const { token, user } = res
+          pb.authStore.save(token, user)
+          this.auth = user
+          this.$nextTick(jdenticon)
+          this.roomState = normalizeRoomState(res.roomState)
+          this.isReady = true
+          watch()
+        })
+      }
+      login()
+      pb.realtime.subscribe('PB_CONNECT', (e) => {
+        login()
+      })
+
+      this.$watch('roomState', (value) => {
+        this.$nextTick(jdenticon)
+      })
+      const calcTimeRemaining = (roomState) => {
+        this.msRemaining = Math.max(
+          0,
+          this.roomState.stepStartedAt + this.roomState.stepTtl - Date.now()
+        )
+        this.pctRemaining = this.msRemaining / this.roomState.stepTtl
+      }
+      this.$watch('roomState', calcTimeRemaining, (value) => {
+        const { msRemaining, pctRemaining } = calcTimeRemaining(value)
+        this.msRemaining = msRemaining
+        this.pctRemaining = pctRemaining
+      })
+      this.$watch('roomState', (value) => {
+        const authId = this.auth?.id
+        if (!authId) return
+        this.playerState = value.players[authId] || {
+          shards: 10,
+          health: 0,
+        }
+      })
+      this.$watch('roomState', (value) => {
+        const cellEntries = Object.entries(value.grid)
+        for (let i = 0; i < cellEntries.length; i++) {
+          const [idx, cell] = cellEntries[i]
+          if (cell.hasPrize) {
+            this.prizeIdx = idx
+            break
+          }
+        }
+      })
+      this.$watch('roomState', (value) => {
+        const authId = this.auth?.id
+        if (!authId) return
+        this.playerCells = Object.entries(value.grid)
+          .filter(([idx, cell]) => {
+            return cell.playerId == authId
+          })
+          .map(([idx, cell]) => +idx)
+      })
+      this.$nextTick(() => {
+        setInterval(() => {
+          calcTimeRemaining(this.roomState)
+        }, 100)
+      })
+    },
     error: null,
     prizeIdx: null,
     msRemaining: 0,
@@ -37,11 +106,13 @@
     auth: null,
     isReady: false,
     selectedIdx: null,
+    playerCells: [],
     getCell(idx) {
       if (!this.roomState.grid[idx]) {
         this.roomState.grid[idx] = {
           playerId: null,
           health: 0,
+          attackedBy: [],
         }
       }
       return this.roomState.grid[idx]
@@ -89,22 +160,12 @@
     gatherNeighborOpponents(idx) {
       return gatherNeighbors(idx).filter((idx) => this.isOpponentCell(idx))
     },
-    toggleNeighborAttack(idx) {
-      if (!this.clientRoomState.grid[idx].attackedBy) {
-        this.clientRoomState.grid[idx].attackedBy = []
-      }
-      if (
-        this.clientRoomState.grid[idx].attackedBy.includes(this.selectedIdx)
-      ) {
-        this.clientRoomState.grid[idx].attackedBy = this.clientRoomState.grid[
-          idx
-        ].attackedBy.filter((id) => id !== this.selectedIdx)
-      } else {
-        this.clientRoomState.grid[idx].attackedBy.push(this.selectedIdx)
-      }
-      this.clientRoomState.grid[idx].isBeingAttacked =
-        this.clientRoomState.grid[idx].attackedBy.length > 0
+    isAttackedByPlayer(idx) {
+      return this.roomState.grid[idx].attackedBy?.some((idx) =>
+        this.playerCells.includes(idx)
+      )
     },
+
     handleCellClick(idx) {
       if (this.roomState.step == 'placement') {
         this.join(idx)
@@ -116,7 +177,7 @@
         } else {
           if (this.selectedIdx) {
             if (this.actionableNeighbors.includes(idx)) {
-              this.toggleNeighborAttack(idx)
+              this.attack(idx)
             } else {
               this.selectedIdx = null
               this.actionableNeighbors = []
@@ -141,69 +202,21 @@
           this.getClientCell(idx).busy = false
         })
     },
-    init() {
-      const watch = (() => {
-        let unsub
-        return () => {
-          unsub?.()
-          unsub = pb.realtime.subscribe(`rooms/2ruk2zo3x8k11h5/delta`, (e) => {
-            applyDeltas(e, this.roomState)
-          })
-        }
-      })()
-      const login = () => {
-        pb.send(`/api/login`).then((res) => {
-          const { token, user } = res
-          pb.authStore.save(token, user)
-          this.auth = user
-          this.$nextTick(jdenticon)
-          this.roomState = normalizeRoomState(res.roomState)
-          this.isReady = true
-          watch()
+    attack(idx) {
+      this.error = null
+      this.getClientCell(idx).busy = true
+      pb.send(`/api/attack/${this.selectedIdx}/${idx}`, {
+        requestKey: this.uniqId(),
+      })
+        .then((res) => {
+          this.error = res.error
         })
-      }
-      login()
-      pb.realtime.subscribe('PB_CONNECT', (e) => {
-        // login()
-      })
-
-      this.$watch('roomState', (value) => {
-        this.$nextTick(jdenticon)
-      })
-      const calcTimeRemaining = (roomState) => {
-        this.msRemaining = Math.max(
-          0,
-          this.roomState.stepStartedAt + this.roomState.stepTtl - Date.now()
-        )
-        this.pctRemaining = this.msRemaining / this.roomState.stepTtl
-      }
-      this.$watch('roomState', calcTimeRemaining, (value) => {
-        const { msRemaining, pctRemaining } = calcTimeRemaining(value)
-        this.msRemaining = msRemaining
-        this.pctRemaining = pctRemaining
-      })
-      this.$watch('roomState', (value) => {
-        if (!this.auth) return
-        this.playerState = value.players[this.auth.id] || {
-          shards: 10,
-          health: 0,
-        }
-      })
-      this.$watch('roomState', (value) => {
-        const cellEntries = Object.entries(value.grid)
-        for (let i = 0; i < cellEntries.length; i++) {
-          const [idx, cell] = cellEntries[i]
-          if (cell.hasPrize) {
-            this.prizeIdx = idx
-            break
-          }
-        }
-      })
-      this.$nextTick(() => {
-        setInterval(() => {
-          calcTimeRemaining(this.roomState)
-        }, 100)
-      })
+        .catch((e) => {
+          this.error = { message: e.message, idx }
+        })
+        .finally(() => {
+          this.getClientCell(idx).busy = false
+        })
     },
   }
 </script>
@@ -279,7 +292,7 @@
                 x-show="error?.idx == i"
                 class="absolute top-0 left-0 w-full h-full bg-red-600 animate-out fade-out duration-500 fill-mode-forwards"
               ></div>
-              <div x-show="getCell(i).playerId && !getClientCell(i).joining">
+              <div x-show="getCell(i).playerId ">
                 <div class="absolute top-0 left-0 w-full h-full">
                   <svg
                     class="w-full h-full"
@@ -305,12 +318,12 @@
                 class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
               ></div>
               <div
-                x-show="getClientCell(i).isBeingAttacked"
+                x-show="isAttackedByPlayer(i)"
                 class="absolute top-0 left-0 w-full h-full border-2 border-red-600 bg-red-600 animate-pulse"
               ></div>
               <div
-                x-show="getClientCell(i).attackedBy?.length"
-                x-text="getClientCell(i).attackedBy?.length"
+                x-show="getCell(i).attackedBy?.length"
+                x-text="getCell(i).attackedBy?.length"
                 class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 animate-pulse flex items-center justify-center"
               ></div>
               <div

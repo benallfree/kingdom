@@ -7,6 +7,7 @@ type CellState = {
   playerId: string
   health: number
   hasPrize: boolean
+  attackedBy: string[]
 }
 
 type RoomState = {
@@ -23,5 +24,5 @@ type RoomState = {
 }
 
 type ClientRoomState = {
-  grid: Record<string, CellState & { joining: boolean; attackedBy: string[] }>
+  grid: Record<string, CellState & { busy: boolean }>
 }

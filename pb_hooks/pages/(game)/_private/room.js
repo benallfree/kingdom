@@ -64,10 +64,15 @@ const pushRoomStateDelta = (roomId, state, extraFilter = (client) => true) => {
 }
 
 const sanitizeRoomState = (state, user) => {
+  const { dbg } = require('pocketpages')
   Object.entries(state.grid).forEach(([idx, cell]) => {
     if (idx == state.prizeIdx) {
       cell.hasPrize = true
     }
+    cell.attackedBy =
+      cell.attackedBy?.filter((idx) => state.grid[idx]?.playerId === user.id) ||
+      []
+    if (cell.attackedBy.length === 0) delete cell.attackedBy
     if (cell.playerId === user.id) return
     delete cell.hasPrize
     delete cell.health
