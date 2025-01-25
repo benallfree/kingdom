@@ -82,6 +82,7 @@
       const publicDelta = {
         [`grid.${idx}.playerId`]: auth.id,
         [`roundStartedAt`]: roomState.roundStartedAt,
+        [`grid.${idx}.hasPrize`]: hasPrize,
       }
       deferred.push(() => {
         pushRoomStateDelta(
@@ -92,7 +93,6 @@
       })
 
       const privateDelta = {
-        [`grid.${idx}.hasPrize`]: hasPrize,
         [`grid.${idx}.health`]: roomState.grid[idx].health,
         [`players.${auth.id}.shards`]: roomState.players[auth.id].shards,
         [`players.${auth.id}.health`]: roomState.players[auth.id].health,

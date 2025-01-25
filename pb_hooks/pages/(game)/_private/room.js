@@ -73,8 +73,10 @@ const sanitizeRoomState = (state, user) => {
       cell.attackedBy?.filter((idx) => state.grid[idx]?.playerId === user.id) ||
       []
     if (cell.attackedBy.length === 0) delete cell.attackedBy
+    if (cell.hasPrize && !cell.playerId) {
+      delete cell.hasPrize
+    }
     if (cell.playerId === user.id) return
-    delete cell.hasPrize
     delete cell.health
     if (Object.keys(cell).length === 0) {
       delete state.grid[idx]
