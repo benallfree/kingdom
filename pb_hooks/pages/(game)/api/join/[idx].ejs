@@ -32,9 +32,10 @@
     return true
   }
 
+  const { DEFAULT_SHARDS } = resolve('cell-math')
   const playerHasEnoughShardsGuard = (roomState) => {
     if (!roomState.players[auth.id]) {
-      roomState.players[auth.id] = { shards: 10, health: 0 }
+      roomState.players[auth.id] = { shards: DEFAULT_SHARDS, health: 0 }
     }
 
     if (roomState.players[auth.id]?.shards <= 0) {

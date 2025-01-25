@@ -70,7 +70,7 @@
         const authId = this.auth?.id
         if (!authId) return
         this.playerState = value.players[authId] || {
-          shards: 10,
+          shards: DEFAULT_SHARDS,
           health: 0,
         }
       })
