@@ -65,17 +65,18 @@
     )
   }
 
+  const { ROOM_ID } = resolve('constants')
   const { getRoomState, setRoomState, pushRoomStateDelta } = resolve('room')
 
   let roomState = {}
   let error = null
-  roomState = getRoomState($app)
+  roomState = getRoomState(ROOM_ID, $app)
 
   if (isAttackAllowed(roomState)) {
     dbg(`Attack is allowed`)
     const deferred = []
     $app.runInTransaction((txApp) => {
-      roomState = getRoomState(txApp)
+      roomState = getRoomState(ROOM_ID, txApp)
       if (!isAttackAllowed(roomState)) return
 
       if (!roomState.grid[targetIdx].attackedBy) {
@@ -89,7 +90,7 @@
         roomState.grid[targetIdx].attackedBy.push(playerIdx)
       }
 
-      setRoomState(roomState, txApp)
+      setRoomState(ROOM_ID, roomState, txApp)
 
       const delta = {
         [`grid.${targetIdx}.attackedBy`]: roomState.grid[
@@ -98,7 +99,7 @@
       }
       deferred.push(() => {
         pushRoomStateDelta(
-          `2ruk2zo3x8k11h5`,
+          ROOM_ID,
           delta,
           (client) => client.get('auth').id === auth.id
         )

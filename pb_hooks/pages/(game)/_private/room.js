@@ -1,5 +1,5 @@
-const getRoomState = (dao = $app) => {
-  const room = dao.findRecordById(`rooms`, `2ruk2zo3x8k11h5`)
+const getRoomState = (roomId, dao = $app) => {
+  const room = dao.findRecordById(`rooms`, roomId)
   const storedState = JSON.parse(room.getString('state'))
   const normalizedState = {
     grid: {},
@@ -36,8 +36,8 @@ const getRoomState = (dao = $app) => {
   return normalizedState
 }
 
-const setRoomState = (state, dao = $app) => {
-  const room = dao.findRecordById(`rooms`, `2ruk2zo3x8k11h5`)
+const setRoomState = (roomId, state, dao = $app) => {
+  const room = dao.findRecordById(`rooms`, roomId)
   room.set('state', state)
   dao.save(room)
 }

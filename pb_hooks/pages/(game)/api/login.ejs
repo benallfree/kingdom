@@ -1,4 +1,5 @@
 <script server>
+  const { ROOM_ID } = resolve('constants')
   const user = (() => {
     if (auth) return auth
     const usersCollection = $app.findCollectionByNameOrId('users')
@@ -11,7 +12,7 @@
   const token = user.newAuthToken()
 
   const { getRoomState, sanitizeRoomState } = resolve('room')
-  const roomState = getRoomState()
+  const roomState = getRoomState(ROOM_ID)
   sanitizeRoomState(roomState, user)
 
   return { token, user, roomState }

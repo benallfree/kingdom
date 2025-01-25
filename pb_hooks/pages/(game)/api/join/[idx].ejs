@@ -53,16 +53,17 @@
     )
   }
 
+  const { ROOM_ID } = resolve('constants')
   const { getRoomState, setRoomState, pushRoomStateDelta } = resolve('room')
 
   let roomState = {}
   let error = null
-  roomState = getRoomState($app)
+  roomState = getRoomState(ROOM_ID, $app)
 
   if (shouldAttemptJoin(roomState)) {
     const deferred = []
     $app.runInTransaction((txApp) => {
-      roomState = getRoomState(txApp)
+      roomState = getRoomState(ROOM_ID, txApp)
       if (!shouldAttemptJoin(roomState)) return
 
       roomState.players[auth.id].shards -= 1
@@ -74,7 +75,7 @@
       roomState.grid[idx].health += 1
       roomState.roundStartedAt = Date.now()
 
-      setRoomState(roomState, txApp)
+      setRoomState(ROOM_ID, roomState, txApp)
 
       const hasPrize = roomState.prizeIdx == idx
       roomState.grid[idx].hasPrize = hasPrize
@@ -86,7 +87,7 @@
       }
       deferred.push(() => {
         pushRoomStateDelta(
-          `2ruk2zo3x8k11h5`,
+          ROOM_ID,
           publicDelta,
           (client) => client.get('auth').id !== auth.id
         )
@@ -99,7 +100,7 @@
       }
       deferred.push(() => {
         pushRoomStateDelta(
-          `2ruk2zo3x8k11h5`,
+          ROOM_ID,
           { ...publicDelta, ...privateDelta },
           (client) => client.get('auth').id === auth.id
         )

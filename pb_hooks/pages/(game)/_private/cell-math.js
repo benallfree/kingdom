@@ -1,5 +1,3 @@
-const DEFAULT_SHARDS = 50
-
 const gatherNeighbors = (_idx) => {
   const idx = +_idx
   const neighbors = []
@@ -35,5 +33,4 @@ const gatherNeighbors = (_idx) => {
 
 module.exports = {
   gatherNeighbors,
-  DEFAULT_SHARDS,
 }

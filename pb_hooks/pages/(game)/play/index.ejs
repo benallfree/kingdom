@@ -1,4 +1,6 @@
 <%-resolve('cell-math', {mode: 'script'}) %>
+<%-resolve('constants', {mode: 'script'}) %>
+
 <script>
   const applyDeltas = (e, roomState) => {
     Object.entries(e).forEach(([key, value]) => {
@@ -31,7 +33,7 @@
   const gameState = {
     init() {
       const watch = () => {
-        pb.realtime.subscribe(`rooms/2ruk2zo3x8k11h5/delta`, (e) => {
+        pb.realtime.subscribe(`rooms/${ROOM_ID}/delta`, (e) => {
           applyDeltas(e, this.roomState)
         })
       }

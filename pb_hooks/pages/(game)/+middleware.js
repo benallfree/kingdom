@@ -1,5 +1,6 @@
 module.exports = (api) => {
   const { dbg, resolve } = api
+  const { ROOM_ID } = resolve('constants')
   const { getRoomState, setRoomState } = resolve('room')
 
   const deferred = []
@@ -23,10 +24,10 @@ module.exports = (api) => {
     return room.stepExpiresAt <= Date.now()
   }
 
-  room = getRoomState($app)
+  room = getRoomState(ROOM_ID, $app)
   if (stepExpiredGuard(room)) {
     $app.runInTransaction((txn) => {
-      room = getRoomState(txn)
+      room = getRoomState(ROOM_ID, txn)
       if (stepExpiredGuard(room)) return
 
       // Step has expired, advance game
@@ -35,9 +36,11 @@ module.exports = (api) => {
           advanceGame('assignment', txn)
           break
         case 'assignment':
-          // advanceGame('action', txn)
+          advanceGame('war', txn)
+          calculateWarResults(room)
           break
-        case 'action':
+        case 'war':
+          advanceGame('placement', txn)
           break
       }
     })
