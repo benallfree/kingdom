@@ -1,5 +1,0 @@
----
-'kingdom': patch
----
-
-Feat: battles

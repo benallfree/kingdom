@@ -1,5 +1,11 @@
 # kingdom
 
+## 0.0.9
+
+### Patch Changes
+
+- 3b002d6: Feat: battles
+
 ## 0.0.8
 
 ### Patch Changes
