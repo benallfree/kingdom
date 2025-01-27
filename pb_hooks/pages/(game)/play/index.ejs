@@ -117,16 +117,23 @@
           setTimeout(tryAdvance, 10)
           return
         }
-        pb.send(`/api/advance`)
-          .then((res) => {
-            this.roomState = normalizeRoomState(res.roomState)
-            this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
-            setTimeout(tryAdvance, 10)
-          })
-          .catch(() => {
-            this.error = { message: 'There is a problem with the server' }
-            setTimeout(tryAdvance, 1000)
-          })
+        const _advanceWithTimeout = () => {
+          let tid = setTimeout(_advanceWithTimeout, 5000)
+          pb.send(`/api/advance`)
+            .then((res) => {
+              this.roomState = normalizeRoomState(res.roomState)
+              this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
+              setTimeout(tryAdvance, 10)
+            })
+            .catch(() => {
+              this.error = { message: 'There is a problem with the server' }
+              setTimeout(tryAdvance, 1000)
+            })
+            .finally(() => {
+              clearTimeout(tid)
+            })
+        }
+        _advanceWithTimeout()
       }
       tryAdvance()
     },
