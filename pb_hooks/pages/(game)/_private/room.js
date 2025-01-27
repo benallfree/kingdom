@@ -4,12 +4,14 @@ const {
   DEFAULT_PLACEMENT_TTL,
   DEFAULT_HEALTH,
   DEFAULT_SHARDS,
+  DEFAULT_SHARDS_PER_ROUND,
 } = require(`${__root}/constants`)
 
 const getRoomState = (roomId, dao = $app) => {
   const room = dao.findRecordById(`rooms`, roomId)
   const storedState = JSON.parse(room.getString('state'))
   const normalizedState = {
+    shardsPerRound: DEFAULT_SHARDS_PER_ROUND,
     grid: {},
     players: {},
     roundNum: 1,

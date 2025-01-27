@@ -12,6 +12,7 @@ const {
   getSanitizedBattles,
   getSanitizedGrid,
   getSanitizedRoomState,
+  getSanitizedPlayers,
 } = require(`${__root}/room`)
 const { calculateWarResults } = require(`${__root}/battle`)
 const { applyDeltas } = require(`${__root}/util`)
@@ -103,6 +104,9 @@ const advance = (userId = null) => {
               Object.entries(room.grid).forEach(([idx, cell]) => {
                 cell.attackedBy = []
               })
+              Object.entries(room.players).forEach(([playerId, player]) => {
+                player.shards += room.shardsPerRound
+              })
               room.battles.forEach((battle) => {
                 dbg({ battle })
 
@@ -115,6 +119,7 @@ const advance = (userId = null) => {
           deferred.push(() => {
             const playerIds = Object.keys(roomState.players)
 
+            // Push public deltas to non-players
             pushRoomStateDelta(
               ROOM_ID,
               {
@@ -125,6 +130,7 @@ const advance = (userId = null) => {
               (client) => !playerIds.includes(client.get('auth').id)
             )
 
+            // Push player deltas to players
             playerIds.forEach((playerId) => {
               pushRoomStateDelta(
                 ROOM_ID,
@@ -132,6 +138,7 @@ const advance = (userId = null) => {
                   [`roundNum`]: roomState.roundNum,
                   [`grid`]: getSanitizedGrid(roomState, playerId),
                   [`battles`]: getSanitizedBattles(roomState, playerId),
+                  [`players`]: getSanitizedPlayers(roomState, playerId),
                 },
                 (client) => client.get('auth').id === playerId
               )
