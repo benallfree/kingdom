@@ -12,11 +12,11 @@
 
   const stepGuard = (roomState) => {
     if (roomState.step !== 'assignment') {
-      error = { message: `You can't do that right now.`, idx }
+      error = { message: `You can't do that right now.`, targetIdx }
       return
     }
     if (roomState.stepStartedAt + roomState.stepTtl < Date.now()) {
-      error = { message: `Assignment phase has ended.`, idx }
+      error = { message: `Assignment phase has ended.`, targetIdx }
       return
     }
     return true
