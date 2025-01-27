@@ -1,9 +1,10 @@
+const __root = `${__hooks}/pages/(game)/_private`
 const {
   DEFAULT_MAX_ROUNDS,
   DEFAULT_PLACEMENT_TTL,
   DEFAULT_HEALTH,
   DEFAULT_SHARDS,
-} = require(`${__hooks}/pages/(game)/_private/constants`)
+} = require(`${__root}/constants`)
 
 const getRoomState = (roomId, dao = $app) => {
   const room = dao.findRecordById(`rooms`, roomId)

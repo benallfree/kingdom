@@ -1,4 +1,5 @@
-const { applyDeltas } = require(`${__hooks}/pages/(game)/_private/util`)
+const __root = `${__hooks}/pages/(game)/_private`
+const { applyDeltas } = require(`${__root}/util`)
 
 const calculateWarResults = (roomState_readonly) => {
   const { shuffle, dbg } = require('pocketpages')
