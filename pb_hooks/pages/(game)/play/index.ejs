@@ -111,6 +111,24 @@
         )
         this.pctRemaining = this.msRemaining / this.roomState.stepTtl
       }, 100)
+
+      const tryAdvance = () => {
+        if (this.msRemaining > 0) {
+          setTimeout(tryAdvance, 10)
+          return
+        }
+        pb.send(`/api/advance`)
+          .then((res) => {
+            this.roomState = normalizeRoomState(res.roomState)
+            this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
+            setTimeout(tryAdvance, 10)
+          })
+          .catch(() => {
+            this.error = { message: 'There is a problem with the server' }
+            setTimeout(tryAdvance, 1000)
+          })
+      }
+      tryAdvance()
     },
     error: null,
     prizeIdx: null,
