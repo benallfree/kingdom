@@ -33,7 +33,6 @@
           this.$nextTick(jdenticon)
           this.roomState = normalizeRoomState(res.roomState)
           this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
-          console.log(`initial roomstate`, this.roomState)
           this.isReady = true
           watch()
         })
