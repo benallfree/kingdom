@@ -11,9 +11,9 @@
   })()
   const token = user.newAuthToken()
 
-  const { getRoomState, sanitizeRoomState } = resolve('room')
+  const { getRoomState, getSanitizedRoomStateForUser } = resolve('room')
   const roomState = getRoomState(ROOM_ID)
-  sanitizeRoomState(roomState, user)
+  const sanitizedRoomState = getSanitizedRoomStateForUser(roomState, user.id)
 
-  return { token, user, roomState }
+  return { token, user, roomState: sanitizedRoomState }
 </script>

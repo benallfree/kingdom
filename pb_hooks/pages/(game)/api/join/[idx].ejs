@@ -9,6 +9,15 @@
     throw new BadRequestError('Missing idx')
   }
 
+  const { ROOM_ID, DEFAULT_SHARDS } = resolve('constants')
+  const {
+    getRoomState,
+    setRoomState,
+    pushRoomStateDelta,
+    getSanitizedGridCell,
+    getSanitizedPlayers,
+  } = resolve('room')
+
   const stepGuard = (roomState) => {
     if (roomState.step !== 'placement') {
       error = { message: `You can't do that right now.`, idx }
@@ -32,7 +41,6 @@
     return true
   }
 
-  const { DEFAULT_SHARDS } = resolve('cell-math')
   const playerHasEnoughShardsGuard = (roomState) => {
     if (!roomState.players[auth.id]) {
       roomState.players[auth.id] = { shards: DEFAULT_SHARDS, health: 0 }
@@ -53,9 +61,6 @@
     )
   }
 
-  const { ROOM_ID } = resolve('constants')
-  const { getRoomState, setRoomState, pushRoomStateDelta } = resolve('room')
-
   let roomState = {}
   let error = null
   roomState = getRoomState(ROOM_ID, $app)
@@ -72,18 +77,18 @@
       if (!roomState.grid[idx]) {
         roomState.grid[idx] = { playerId: auth.id, health: 0 }
       }
+
+      roomState.grid[idx].playerId = auth.id
       roomState.grid[idx].health += 1
       roomState.roundStartedAt = Date.now()
 
       setRoomState(ROOM_ID, roomState, txApp)
 
-      const hasPrize = roomState.prizeIdx == idx
+      const hasPrize = roomState.prize?.idx == idx
       roomState.grid[idx].hasPrize = hasPrize
 
       const publicDelta = {
-        [`grid.${idx}.playerId`]: auth.id,
-        [`roundStartedAt`]: roomState.roundStartedAt,
-        [`grid.${idx}.hasPrize`]: hasPrize,
+        [`grid.${idx}`]: getSanitizedGridCell(roomState, idx),
       }
       deferred.push(() => {
         pushRoomStateDelta(
@@ -94,9 +99,8 @@
       })
 
       const privateDelta = {
-        [`grid.${idx}.health`]: roomState.grid[idx].health,
-        [`players.${auth.id}.shards`]: roomState.players[auth.id].shards,
-        [`players.${auth.id}.health`]: roomState.players[auth.id].health,
+        [`grid.${idx}`]: getSanitizedGridCell(roomState, idx, auth.id),
+        [`players`]: getSanitizedPlayers(roomState, auth.id),
       }
       deferred.push(() => {
         pushRoomStateDelta(

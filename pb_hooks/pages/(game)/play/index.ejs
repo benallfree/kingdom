@@ -1,28 +1,14 @@
-<%-resolve('cell-math', {mode: 'script'}) %>
-<%-resolve('constants', {mode: 'script'}) %>
-
+<%-resolve('cell-math.js', {mode: 'script'}) %>
+<%-resolve('constants.js', {mode: 'script'}) %>
+<%-resolve('util.js', {mode: 'script'}) %>
+<%-resolve('particle.js', {mode: 'script'}) %>
+<%-resolve('particle.css', {mode: 'style'}) %>
 <script>
-  const applyDeltas = (e, roomState) => {
-    Object.entries(e).forEach(([key, value]) => {
-      let node = roomState
-      const keys = key.split('.')
-      const leafKey = keys.pop()
-      const leafValue = value
-      const leafNode = keys.reduce((node, k) => {
-        if (!node[k]) {
-          node[k] = {}
-        }
-        return node[k]
-      }, roomState)
-      leafNode[leafKey] = leafValue
-    })
-  }
-
   const normalizeRoomState = (roomState) => {
     for (let i = 1; i <= 100; i++) {
       roomState.grid[i] = {
         playerId: null,
-        hasPrize: this.prizeIdx == i,
+        hasPrize: this.prize?.idx == i,
         health: 0,
         ...roomState.grid[i],
       }
@@ -34,7 +20,9 @@
     init() {
       const watch = () => {
         pb.realtime.subscribe(`rooms/${ROOM_ID}/delta`, (e) => {
-          applyDeltas(e, this.roomState)
+          applyDeltas(this.roomState, e)
+          applyDeltas(this.savedRoomState, e)
+          console.log(`roomState after deltas`, this.roomState)
         })
       }
       const login = () => {
@@ -44,6 +32,8 @@
           this.auth = user
           this.$nextTick(jdenticon)
           this.roomState = normalizeRoomState(res.roomState)
+          this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
+          console.log(`initial roomstate`, this.roomState)
           this.isReady = true
           watch()
         })
@@ -56,28 +46,20 @@
       this.$watch('roomState', (value) => {
         this.$nextTick(jdenticon)
       })
-      const calcTimeRemaining = (roomState) => {
-        this.msRemaining = Math.max(
-          0,
-          this.roomState.stepStartedAt + this.roomState.stepTtl - Date.now()
-        )
-        this.pctRemaining = this.msRemaining / this.roomState.stepTtl
-      }
-      this.$watch('roomState', calcTimeRemaining, (value) => {
-        const { msRemaining, pctRemaining } = calcTimeRemaining(value)
-        this.msRemaining = msRemaining
-        this.pctRemaining = pctRemaining
-      })
-      this.$watch('roomState', (value) => {
+
+      const updatePlayerState = () => {
         const authId = this.auth?.id
         if (!authId) return
-        this.playerState = value.players[authId] || {
+        this.playerState = this.roomState.players[authId] || {
           shards: DEFAULT_SHARDS,
           health: 0,
         }
-      })
-      this.$watch('roomState', (value) => {
-        const cellEntries = Object.entries(value.grid)
+      }
+      this.$watch('auth', updatePlayerState)
+      this.$watch('roomState.players', updatePlayerState)
+
+      this.$watch('roomState.grid', (grid) => {
+        const cellEntries = Object.entries(grid)
         for (let i = 0; i < cellEntries.length; i++) {
           const [idx, cell] = cellEntries[i]
           if (cell.hasPrize) {
@@ -86,20 +68,50 @@
           }
         }
       })
-      this.$watch('roomState', (value) => {
+
+      const updatePlayerCells = () => {
         const authId = this.auth?.id
         if (!authId) return
-        this.playerCells = Object.entries(value.grid)
+        this.playerCells = Object.entries(this.roomState.grid)
           .filter(([idx, cell]) => {
             return cell.playerId == authId
           })
           .map(([idx, cell]) => +idx)
+      }
+      this.$watch('roomState.grid', updatePlayerCells)
+      this.$watch('auth', updatePlayerCells)
+
+      this.$watch(`roomState.step`, (step, oldStep) => {
+        if (step === oldStep) return
+
+        // Step has changed, reset state
+        this.selectedIdx = null
+        this.actionableNeighbors = []
+        this.battleIdx = -1
+        this.isBattlePlaying = false
+        this.battleTid = null
+        Object.entries(this.clientRoomState.grid).forEach(([idx, cell]) => {
+          cell.isFighting = false
+        })
       })
-      this.$nextTick(() => {
-        setInterval(() => {
-          calcTimeRemaining(this.roomState)
-        }, 100)
+
+      let errorTimeout = null
+      this.$watch(`error`, (error) => {
+        if (error) {
+          clearTimeout(errorTimeout)
+          errorTimeout = setTimeout(() => {
+            this.error = null
+          }, 2000)
+        }
       })
+
+      setInterval(() => {
+        this.msRemaining = Math.max(
+          0,
+          this.roomState.stepStartedAt + this.roomState.stepTtl - Date.now()
+        )
+        this.pctRemaining = this.msRemaining / this.roomState.stepTtl
+      }, 100)
     },
     error: null,
     prizeIdx: null,
@@ -138,6 +150,7 @@
       maxRounds: 0,
       roundTtl: 0,
     },
+    savedRoomState: null,
     clientRoomState: {
       grid: {},
     },
@@ -163,11 +176,14 @@
       return gatherNeighbors(idx).filter((idx) => this.isOpponentCell(idx))
     },
     isAttackedByPlayer(idx) {
-      return this.roomState.grid[idx].attackedBy?.some((idx) =>
-        this.playerCells.includes(idx)
+      return (
+        (this.roomState.step == 'assignment' ||
+          this.roomState.step === 'war') &&
+        this.roomState.grid[idx].attackedBy?.some((idx) =>
+          this.playerCells.includes(idx)
+        )
       )
     },
-
     handleCellClick(idx) {
       if (this.roomState.step == 'placement') {
         this.join(idx)
@@ -220,6 +236,101 @@
           this.getClientCell(idx).busy = false
         })
     },
+    battleIdx: -1,
+    isBattlePlaying: false,
+    handleNextBattleClick() {
+      this.battleFrame()
+    },
+    pauseBattle() {
+      console.log('pauseBattle')
+      this.isBattlePlaying = false
+      clearInterval(this.battleTid)
+    },
+    toggleBattle() {
+      if (this.isBattlePlaying) {
+        this.pauseBattle()
+      } else {
+        this.playBattle()
+      }
+    },
+    battleTid: null,
+    playBattle() {
+      console.log('playBattle')
+      if (this.isBattlePlaying) return
+      this.isBattlePlaying = true
+      console.log('playBattle')
+      this.battleFrame(this.battleIdx)
+      this.battleTid = setInterval(() => {
+        if (!this.isBattlePlaying) return
+
+        this.battleIdx++
+        if (this.battleIdx >= this.roomState.battles?.length) {
+          this.battleIdx = -1
+          this.roomState = JSON.parse(JSON.stringify(this.savedRoomState))
+        }
+        this.battleFrame(this.battleIdx)
+      }, 200)
+    },
+    battleFrame(idx) {
+      if (idx < 0) return
+      const battle = this.roomState.battles[idx]
+      const { vs, deltas, outcome } = battle
+
+      this.applyBattleStart(idx)
+      this.applyBattleEnd(idx)
+      if (outcome <= 0) pop(`c${vs[1]}`)
+      if (outcome >= 0) pop(`c${vs[0]}`)
+    },
+    applyBattleStart(idx) {
+      const battle = this.roomState.battles[idx]
+      const { vs, deltas, outcome } = battle
+      Object.entries(this.roomState.grid).forEach(([idx, cell]) => {
+        this.getClientCell(idx).isFighting = false
+      })
+      vs.forEach((idx) => {
+        this.getClientCell(idx).isFighting = true
+      })
+    },
+    applyBattleEnd(idx) {
+      const battle = this.roomState.battles[idx]
+      const { vs, deltas, outcome } = battle
+      this.applyBattleDeltas(idx)
+    },
+    applyBattleDeltas(idx) {
+      if (idx < 0) return
+      const battle = this.roomState.battles[idx]
+      const { deltas, vs, outcome } = battle
+      const [p1Idx, p2Idx] = vs
+      if (outcome <= 0) {
+        const neighborCells = gatherNeighbors(p2Idx)
+        neighborCells.forEach((nidx) => {
+          this.getCell(nidx).attackedBy =
+            this.getCell(nidx).attackedBy?.filter((id) => id !== p2Idx) || []
+        })
+        this.getCell(p2Idx).attackedBy = []
+      }
+      if (outcome >= 0) {
+        const neighborCells = gatherNeighbors(p1Idx)
+        neighborCells.forEach((nidx) => {
+          this.getCell(nidx).attackedBy =
+            this.getCell(nidx).attackedBy?.filter((id) => id !== p1Idx) || []
+        })
+        this.getCell(p1Idx).attackedBy = []
+      }
+      Object.entries(deltas).forEach(([idx, delta]) => {
+        applyDeltas(this.roomState, delta)
+      })
+    },
+    revertRoomState() {
+      this.roomState = JSON.parse(JSON.stringify(this.savedRoomState))
+    },
+    seekBattle(idx) {
+      this.revertRoomState()
+      for (let i = -1; i < idx; i++) {
+        this.applyBattleDeltas(i)
+      }
+      this.battleFrame(idx)
+    },
   }
 </script>
 
@@ -246,9 +357,7 @@
             <div x-show="roomState.step == 'assignment'" class="animate-pulse">
               🎯
             </div>
-            <div x-show="roomState.step == 'resolution'" class="animate-pulse">
-              ⚖️
-            </div>
+            <div x-show="roomState.step == 'war'" class="animate-pulse">⚖️</div>
           </div>
           <div class="">
             <span x-text="String(roomState.roundNum).padStart(3, '0')"></span
@@ -278,17 +387,41 @@
           </div>
         </div>
       </div>
-      <div
-        x-text="error?.message"
-        x-bind:class="`text-error h-5 mb-2 text-center w-full ${error ? `visible` : `invisible`}`"
-      ></div>
+      <div class="h-5 w-full mb-2 relative">
+        <div class="text-center">
+          <div x-show="!error && roomState.step === 'placement'">
+            Place and fortify tiles.
+          </div>
+          <div x-show="!error && roomState.step === 'assignment'">
+            Attack enemies, but beware counterattacks.
+          </div>
+          <div x-show="error" x-text="error?.message" class="text-error"></div>
+        </div>
+        <div
+          x-show="roomState.battles?.length > 0 && roomState.step == 'war'"
+          class="flex flex-row items-center gap-2 w-full"
+        >
+          <input
+            type="range"
+            min="-1"
+            x-bind:max="(roomState.battles?.length||0) - 1"
+            x-bind:value="battleIdx"
+            @input="seekBattle( parseInt($event.target.value))"
+            class="range w-full h-5"
+          />
+          <button x-on:click="toggleBattle()">
+            <span x-text="isBattlePlaying ? '⏸️' : '▶️'"></span>
+          </button>
+        </div>
+      </div>
 
-      <div>
+      <div class="relative">
         <div class="grid grid-cols-10 gap-0">
           <template x-for="i in 100">
             <div
               class="w-10 h-10 border border-primary border-1 relative"
               x-on:click="handleCellClick(i)"
+              x-bind:id="`c${i}`"
             >
               <div
                 x-show="error?.idx == i"
@@ -324,7 +457,7 @@
                 class="absolute top-0 left-0 w-full h-full border-2 border-red-600 bg-red-600 animate-pulse"
               ></div>
               <div
-                x-show="getCell(i).attackedBy?.length"
+                x-show="isAttackedByPlayer(i)"
                 x-text="getCell(i).attackedBy?.length"
                 class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 animate-pulse flex items-center justify-center"
               ></div>
@@ -337,6 +470,10 @@
                   x-bind:data-jdenticon-value="auth?.id"
                 ></svg>
               </div>
+              <div
+                x-show="getClientCell(i).isFighting"
+                class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
+              ></div>
             </div>
           </template>
         </div>
