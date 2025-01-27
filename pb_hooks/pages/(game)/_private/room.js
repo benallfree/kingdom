@@ -146,7 +146,7 @@ const getSanitizedPlayers = (roomState_readonly, userId = null) => {
   return { [userId]: getSanitizedPlayer(roomState_readonly, userId) }
 }
 
-const getSanitizedRoomStateForUser = (roomState_readonly, userId = null) => {
+const getSanitizedRoomState = (roomState_readonly, userId = null) => {
   const { dbg } = require('pocketpages')
   const state = {
     ...pick(
@@ -171,7 +171,7 @@ module.exports = {
   getRoomState,
   setRoomState,
   pushRoomStateDelta,
-  getSanitizedRoomStateForUser,
+  getSanitizedRoomState,
   getSanitizedGrid,
   getSanitizedPlayers,
   getSanitizedBattles,
