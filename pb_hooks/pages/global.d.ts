@@ -40,6 +40,11 @@ type RoomState = {
   stepStartedAt: number
   stepTtl: number
   battles: Record<string, BattleState>
+  chat: {
+    ttl: number
+    max: number
+    messages: Record<string, { text: string }>
+  }
 }
 
 type ClientRoomState = {

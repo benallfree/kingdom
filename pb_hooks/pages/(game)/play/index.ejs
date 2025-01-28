@@ -117,6 +117,24 @@
         })
       })
 
+      this.$watch(`roomState.chat.messages`, (messages) => {
+        console.log('messages', messages)
+        this.messages = Object.entries(messages)
+          .map(([key, message]) => {
+            const [t, playerId] = key.split('-')
+            return {
+              text: message.text,
+              playerId,
+              t: +t,
+            }
+          })
+          .sort((a, b) => Number(a.t) - Number(b.t))
+          .reverse()
+          .slice(0, Math.min(this.roomState.chat.max, 5))
+          .reverse()
+        console.log('new messages', this.messages)
+      })
+
       let errorTimeout = null
       this.$watch(`error`, (error) => {
         if (error) {
@@ -192,6 +210,11 @@
       stepTtl: 1000 * 60 * 5,
       maxRounds: 0,
       roundTtl: 0,
+      chat: {
+        ttl: 1000 * 60 * 10,
+        max: 20,
+        messages: {},
+      },
     },
     savedRoomState: null,
     clientRoomState: {
@@ -375,6 +398,37 @@
       }
       this.battleFrame(idx)
     },
+    messageText: '',
+    sendMessage() {
+      pb.send(`/api/rooms/${ROOM_ID}/chat`, {
+        method: 'POST',
+        body: {
+          text: this.messageText,
+        },
+      })
+        .then((res) => {
+          this.messageText = ''
+        })
+        .catch((e) => {
+          this.error = { message: e.message }
+        })
+    },
+    messages: [],
+    ago(t) {
+      const now = Date.now()
+      const diff = Math.max(0, now - t)
+      const seconds = Math.floor(diff / 1000)
+      const minutes = Math.floor(seconds / 60)
+      const hours = Math.floor(minutes / 60)
+      const days = Math.floor(hours / 24)
+      const years = Math.floor(days / 365)
+
+      if (years > 0) return `${years}y`
+      if (days > 0) return `${days}d`
+      if (hours > 0) return `${hours}h`
+      if (minutes > 0) return `${minutes}m`
+      return `${seconds}s`
+    },
   }
 </script>
 
@@ -540,10 +594,79 @@
           </template>
         </div>
       </div>
+      <div class="w-full">
+        <div class="bg-gray-800 p-2 w-full">
+          <!-- Chat messages -->
+          <div class="mb-4 max-h-96 overflow-y-auto">
+            <template
+              x-for="(message) in messages"
+              :key="`${message.t}-${message.playerId}`"
+            >
+              <div class="flex items-start gap-1">
+                <div class="w-4 h-4 flex-shrink-0">
+                  <svg
+                    class="w-full h-full"
+                    x-bind:data-jdenticon-value="message.playerId"
+                  ></svg>
+                </div>
+                <div class="flex-1">
+                  <div
+                    class="text-gray-100 text-xs"
+                    x-text="message.text"
+                  ></div>
+                </div>
+                <div
+                  class="text-xs text-gray-400"
+                  x-text="ago(message.t)"
+                ></div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Chat input -->
+          <div class="flex gap-2">
+            <input
+              type="text"
+              x-model="messageText"
+              @keyup.enter="sendMessage()"
+              placeholder="Type a message..."
+              class="flex-1 bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              @click="sendMessage()"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
       <div
         x-show="roomState.prize?.banner"
         x-html="roomState.prize?.banner"
       ></div>
+    </div>
+    <div class="p-4 bg-base-300 rounded-lg">
+      <h3 class="text-lg font-bold mb-4">Debugging Mode</h3>
+
+      <div class="flex flex-col gap-1 text-sm">
+        <div class="flex items-center gap-1">
+          <svg
+            x-show="auth"
+            class="w-4 h-4"
+            x-bind:data-jdenticon-value="auth?.id"
+          ></svg>
+          <code x-text="auth?.id"></code>
+        </div>
+        <div>Room: <code x-text="ROOM_ID"></code></div>
+        <div>Shards: <span x-text="playerState.shards"></span></div>
+        <div>Health: <span x-text="playerState.health"></span></div>
+        <div>Step: <span x-text="roomState.step"></span></div>
+        <div>Started: <span x-text="roomState.stepStartedAt"></span></div>
+        <div>TTL: <span x-text="roomState.stepTtl"></span></div>
+        <div>Round: <span x-text="roomState.roundNum"></span></div>
+        <div>Max: <span x-text="roomState.maxRounds"></span></div>
+      </div>
     </div>
   </div>
 </div>

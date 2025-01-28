@@ -5,7 +5,17 @@ const {
   DEFAULT_HEALTH,
   DEFAULT_SHARDS,
   DEFAULT_SHARDS_PER_ROUND,
+  DEFAULT_CHAT_TTL,
+  DEFAULT_MAX_CHATS,
 } = require(`${__root}/constants`)
+
+const getDefaultChatState = () => {
+  return {
+    ttl: DEFAULT_CHAT_TTL,
+    max: DEFAULT_MAX_CHATS,
+    messages: {},
+  }
+}
 
 const getDefaultRoomState = (roomId) => {
   return {
@@ -38,6 +48,7 @@ const getDefaultRoomState = (roomId) => {
       </div>
     </div>`,
     },
+    chat: getDefaultChatState(),
   }
 }
 
@@ -163,7 +174,8 @@ const getSanitizedRoomState = (roomState_readonly, userId = null) => {
       'roundStartedAt',
       'step',
       'stepStartedAt',
-      'stepTtl'
+      'stepTtl',
+      'chat'
     ),
     prize: pick(roomState_readonly.prize, 'description', 'found', 'banner'),
     grid: getSanitizedGrid(roomState_readonly, userId),
@@ -185,4 +197,5 @@ module.exports = {
   getSanitizedPlayer,
   getSanitizedGridCell,
   getDefaultRoomState,
+  getDefaultChatState,
 }

@@ -8571,7 +8571,6 @@ var MiddlewareHandler = (request, response, next) => {
         return fingerprint(shortAssetPath, assetRoute.route.fingerprint);
       },
       meta: mkMeta(),
-      url: (path3) => new import_url_parse.default(path3, true),
       resolve: mkResolve($filepath.dir(absolutePath))
     };
     let data = {};
@@ -8658,7 +8657,8 @@ var v23MiddlewareWrapper = (e) => {
     auth: e.auth,
     method: method.toLowerCase(),
     url: (0, import_url_parse2.default)(url.string()),
-    formData: e.requestInfo().body
+    formData: () => e.requestInfo().body,
+    body: () => e.requestInfo().body
   };
   const response = {
     file: (path3) => {
