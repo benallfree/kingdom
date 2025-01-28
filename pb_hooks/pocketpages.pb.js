@@ -1739,7 +1739,7 @@ var require_package = __commonJS({
         "engine",
         "ejs"
       ],
-      version: "3.1.10004",
+      version: "3.1.10005",
       author: "Matthew Eernisse <mde@fleegix.org> (http://fleegix.org)",
       license: "Apache-2.0",
       main: "./lib/ejs.js",
