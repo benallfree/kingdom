@@ -453,6 +453,11 @@
             Attack enemies, but beware counterattacks.
           </div>
           <div x-show="error" x-text="error?.message" class="text-error"></div>
+          <div
+            x-show="roomState.step == 'war' && roomState.battles?.length == 0"
+          >
+            There are no battles this round. Sit tight.
+          </div>
         </div>
         <div
           x-show="roomState.battles?.length > 0 && roomState.step == 'war'"
