@@ -7,10 +7,8 @@ const {
   DEFAULT_SHARDS_PER_ROUND,
 } = require(`${__root}/constants`)
 
-const getRoomState = (roomId, dao = $app) => {
-  const room = dao.findRecordById(`rooms`, roomId)
-  const storedState = JSON.parse(room.getString('state'))
-  const normalizedState = {
+const getDefaultRoomState = (roomId) => {
+  return {
     shardsPerRound: DEFAULT_SHARDS_PER_ROUND,
     grid: {},
     players: {},
@@ -40,9 +38,16 @@ const getRoomState = (roomId, dao = $app) => {
       </div>
     </div>`,
     },
+  }
+}
+
+const getRoomState = (roomId, dao = $app) => {
+  const room = dao.findRecordById(`rooms`, roomId)
+  const storedState = JSON.parse(room.getString('state'))
+  return {
+    ...getDefaultRoomState(roomId),
     ...storedState,
   }
-  return normalizedState
 }
 
 const setRoomState = (roomId, state, dao = $app) => {
@@ -179,4 +184,5 @@ module.exports = {
   getSanitizedBattles,
   getSanitizedPlayer,
   getSanitizedGridCell,
+  getDefaultRoomState,
 }
