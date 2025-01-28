@@ -404,6 +404,7 @@
               🎯
             </div>
             <div x-show="roomState.step == 'war'" class="animate-pulse">⚖️</div>
+            <div x-show="roomState.step == 'end'" class="animate-pulse">🏆</div>
           </div>
           <div class="">
             <span x-text="String(roomState.roundNum).padStart(3, '0')"></span
@@ -457,6 +458,9 @@
             x-show="roomState.step == 'war' && roomState.battles?.length == 0"
           >
             There are no battles this round. Sit tight.
+          </div>
+          <div x-show="roomState.step == 'end'" class="animate-pulse">
+            The game has ended. New rounds begin soon.
           </div>
         </div>
         <div
