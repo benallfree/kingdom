@@ -18,16 +18,18 @@
 
   const gameState = {
     init() {
-      const watch = () => {
-        pb.realtime.subscribe(`rooms/${ROOM_ID}/delta`, (e) => {
+      const watch = (() => {
+        let p
+        return () => {
+          if (p) return
+          p = pb.realtime.subscribe(`rooms/${ROOM_ID}/delta`, (e) => {
+            console.log('delta', e)
           applyDeltas(this.roomState, e)
           applyDeltas(this.savedRoomState, e)
           console.log(`roomState after deltas`, this.roomState)
         })
       }
-      const login = () => {
-        pb.send(`/api/login`).then((res) => {
-          const { token, user } = res
+      })()
           pb.authStore.save(token, user)
           this.auth = user
           this.$nextTick(jdenticon)
