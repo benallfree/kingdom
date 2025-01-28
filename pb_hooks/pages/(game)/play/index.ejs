@@ -90,6 +90,10 @@
       const updatePlayerCells = () => {
         const authId = this.auth?.id
         if (!authId) return
+        this.hasEnemies =
+          Object.entries(this.roomState.grid).filter(([idx, cell]) => {
+            return cell.playerId && cell.playerId !== authId
+          }).length > 0
         this.playerCells = Object.entries(this.roomState.grid)
           .filter(([idx, cell]) => {
             return cell.playerId == authId
@@ -279,6 +283,7 @@
           this.getClientCell(idx).busy = false
         })
     },
+    hasEnemies: false,
     battleIdx: -1,
     isBattlePlaying: false,
     handleNextBattleClick() {
@@ -433,7 +438,18 @@
           <div x-show="!error && roomState.step === 'placement'">
             Place and fortify tiles.
           </div>
-          <div x-show="!error && roomState.step === 'assignment'">
+          <div
+            x-show="!error && roomState.step === 'assignment' && !hasEnemies"
+          >
+            There is nobody to attack. Invite some friends!
+            <button
+              class="btn btn-xs"
+              onclick="navigator.clipboard.writeText('https://kingdom.pockethost.io')"
+            >
+              Copy invite link
+            </button>
+          </div>
+          <div x-show="!error && roomState.step === 'assignment' && hasEnemies">
             Attack enemies, but beware counterattacks.
           </div>
           <div x-show="error" x-text="error?.message" class="text-error"></div>
