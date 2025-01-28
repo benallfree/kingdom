@@ -24,11 +24,11 @@
           if (p) return
           p = pb.realtime.subscribe(`rooms/${ROOM_ID}/delta`, (e) => {
             console.log('delta', e)
-          applyDeltas(this.roomState, e)
-          applyDeltas(this.savedRoomState, e)
-          console.log(`roomState after deltas`, this.roomState)
-        })
-      }
+            applyDeltas(this.roomState, e)
+            applyDeltas(this.savedRoomState, e)
+            console.log(`roomState after deltas`, this.roomState)
+          })
+        }
       })()
       const login = (() => {
         let p
@@ -38,14 +38,14 @@
             .send(`/api/login`)
             .then((res) => {
               const { token, user, roomState } = res
-          pb.authStore.save(token, user)
-          this.auth = user
-          this.$nextTick(jdenticon)
+              pb.authStore.save(token, user)
+              this.auth = user
+              this.$nextTick(jdenticon)
               this.roomState = normalizeRoomState(roomState)
-          this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
-          this.isReady = true
-          watch()
-        })
+              this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
+              this.isReady = true
+              watch()
+            })
             .catch((e) => {
               this.error = { message: 'There is a problem with the server' }
               throw e
@@ -136,27 +136,23 @@
       }, 100)
 
       const tryAdvance = () => {
-        if (this.msRemaining > 0) {
+        if (
+          this.msRemaining > 0 ||
+          !this.isReady ||
+          this.roomState.step === 'end'
+        ) {
           setTimeout(tryAdvance, 10)
           return
         }
-        const _advanceWithTimeout = () => {
-          let tid = setTimeout(_advanceWithTimeout, 5000)
-          pb.send(`/api/advance`)
-            .then((res) => {
-              this.roomState = normalizeRoomState(res.roomState)
-              this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
-              setTimeout(tryAdvance, 10)
-            })
-            .catch(() => {
-              this.error = { message: 'There is a problem with the server' }
-              setTimeout(tryAdvance, 1000)
-            })
-            .finally(() => {
-              clearTimeout(tid)
-            })
-        }
-        _advanceWithTimeout()
+        console.log(this.msRemaining)
+
+        login()
+          .then(() => {
+            setTimeout(tryAdvance, 10)
+          })
+          .catch(() => {
+            setTimeout(tryAdvance, 1000)
+          })
       }
       tryAdvance()
     },
