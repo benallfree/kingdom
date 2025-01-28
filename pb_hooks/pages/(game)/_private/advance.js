@@ -13,6 +13,7 @@ const {
   getSanitizedGrid,
   getSanitizedRoomState,
   getSanitizedPlayers,
+  getDefaultRoomState,
 } = require(`${__root}/room`)
 const { calculateWarResults } = require(`${__root}/battle`)
 const { applyDeltas } = require(`${__root}/util`)
@@ -144,6 +145,10 @@ const advance = (userId = null) => {
               )
             })
           })
+          break
+        case 'end':
+          roomState = getDefaultRoomState(ROOM_ID)
+          advanceGame('placement', txn)
           break
       }
     })
