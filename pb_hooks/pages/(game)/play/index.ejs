@@ -30,16 +30,33 @@
         })
       }
       })()
+      const login = (() => {
+        let p
+        return () => {
+          if (p) return p
+          p = pb
+            .send(`/api/login`)
+            .then((res) => {
+              const { token, user, roomState } = res
           pb.authStore.save(token, user)
           this.auth = user
           this.$nextTick(jdenticon)
-          this.roomState = normalizeRoomState(res.roomState)
+              this.roomState = normalizeRoomState(roomState)
           this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
           this.isReady = true
           watch()
         })
-      }
-      login()
+            .catch((e) => {
+              this.error = { message: 'There is a problem with the server' }
+              throw e
+            })
+            .finally(() => {
+              p = null
+            })
+          return p
+        }
+      })()
+
       pb.realtime.subscribe('PB_CONNECT', (e) => {
         login()
       })
