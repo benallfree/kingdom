@@ -62,15 +62,12 @@ const getRoomState = (roomId, dao = $app) => {
 }
 
 const setRoomState = (roomId, state, dao = $app) => {
-  const { dbg } = require('pocketpages')
   const room = dao.findRecordById(`rooms`, roomId)
   room.set('state', JSON.stringify(state))
   dao.save(room)
 }
 
 const pushRoomStateDelta = (roomId, deltas, extraFilter = (client) => true) => {
-  const { dbg } = require('pocketpages')
-
   const key = `rooms/${roomId}/delta`
   const serializedState = JSON.stringify(deltas)
   const message = new SubscriptionMessage({
@@ -83,7 +80,7 @@ const pushRoomStateDelta = (roomId, deltas, extraFilter = (client) => true) => {
     ([id, client]) => client.hasSubscription(key) && extraFilter(client)
   )
   filteredClients.forEach(([id, client]) => {
-    dbg(`sending to ${id}: ${serializedState}`)
+    console.log(`sending to ${id}: ${serializedState}`)
     client.send(message)
   })
 }
@@ -94,8 +91,7 @@ const getSanitizedBattles = (roomState_readonly, userId = null) =>
   )
 
 const getSanitizedBattle = (battle_readonly, userId = null) => {
-  const { dbg } = require('pocketpages')
-  dbg(`sanitizing battle`, battle_readonly)
+  console.log(`sanitizing battle`, JSON.stringify(battle_readonly))
   const battle = {
     ...pick(battle_readonly, 'vs', 'outcome'),
     deltas: pick(battle_readonly.deltas, 'public', userId),
@@ -165,7 +161,6 @@ const getSanitizedPlayers = (roomState_readonly, userId = null) => {
 }
 
 const getSanitizedRoomState = (roomState_readonly, userId = null) => {
-  const { dbg } = require('pocketpages')
   const state = {
     ...pick(
       roomState_readonly,
