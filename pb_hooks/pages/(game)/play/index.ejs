@@ -123,7 +123,6 @@
       })
 
       this.$watch(`roomState.chat.messages`, (messages) => {
-        console.log('messages', messages)
         this.messages = Object.entries(messages)
           .map(([key, message]) => {
             const [t, playerId] = key.split('-')
@@ -137,7 +136,6 @@
           .reverse()
           .slice(0, Math.min(this.roomState.chat.max, 5))
           .reverse()
-        console.log('new messages', this.messages)
       })
 
       let errorTimeout = null
