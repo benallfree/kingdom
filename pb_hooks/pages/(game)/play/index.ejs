@@ -336,7 +336,9 @@
         this.battleIdx++
         if (this.battleIdx >= this.roomState.battles?.length) {
           this.battleIdx = -1
-          this.roomState = JSON.parse(JSON.stringify(this.savedRoomState))
+          this.roomState.grid = JSON.parse(
+            JSON.stringify(this.savedRoomState.grid)
+          )
         }
         this.battleFrame(this.battleIdx)
       }, 200)
