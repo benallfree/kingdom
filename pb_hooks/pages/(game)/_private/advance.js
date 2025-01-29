@@ -65,7 +65,6 @@ const advance = (userId = null) => {
           })
 
           deferred.push(() => {
-            const clone = () => JSON.parse(JSON.stringify(roomState.battles))
             const playerIds = Object.keys(roomState.players)
             dbg(`pushing public deltas`)
             pushRoomStateDelta(
