@@ -7936,7 +7936,7 @@ var renderFile = (fname, api) => {
     api: pick(api, "slots", "slot", "data")
   });
   if (typeof content !== "string") {
-    if (typeof content === "undefined") {
+    if (content === void 0 || content === null) {
       return "";
     }
     return (0, import_pocketbase_stringify4.stringify)(content);
