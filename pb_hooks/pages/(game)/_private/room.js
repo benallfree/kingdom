@@ -63,6 +63,14 @@ const getRoomState = (roomId, dao = $app) => {
 
 const setRoomState = (roomId, state, dao = $app) => {
   const room = dao.findRecordById(`rooms`, roomId)
+  Object.entries(state.grid).forEach(([idx, cell]) => {
+    cell.strength = (() => {
+      if (cell.health < 10) return 0
+      if (cell.health < 50) return 1
+      if (cell.health < 100) return 2
+      return 3
+    })()
+  })
   room.set('state', JSON.stringify(state))
   dao.save(room)
 }
@@ -114,7 +122,7 @@ const getSanitizedGridCell = (roomState_readonly, idx, userId = null) => {
   const cell_readonly = roomState_readonly.grid[idx]
   const hasPrize = idx == roomState_readonly.prize?.idx
   const cell = {
-    ...pick(cell_readonly, 'playerId'),
+    ...pick(cell_readonly, 'playerId', 'strength'),
   }
   if (cell_readonly.attackedBy?.length > 0) {
     const attackedBy =
