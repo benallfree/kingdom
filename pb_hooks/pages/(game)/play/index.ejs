@@ -549,6 +549,10 @@
                 class="absolute top-0 left-0 w-full h-full bg-red-600 animate-out fade-out duration-500 fill-mode-forwards"
               ></div>
               <div x-show="getCell(i).playerId ">
+                <div
+                  x-show="getCell(i).hasPrize"
+                  class="absolute top-0 left-0 w-full h-full bg-yellow-300 opacity-20 animate-[pulse_1s_ease-in-out_infinite]"
+                ></div>
                 <div class="absolute top-0 left-0 w-full h-full">
                   <svg
                     class="w-full h-full"
