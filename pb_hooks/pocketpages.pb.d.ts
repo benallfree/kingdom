@@ -59,6 +59,7 @@ type PagesGlobalApi = {
     values: typeof values;
     merge: typeof merge;
     shuffle: typeof shuffle;
+    env: (key: string) => string;
 } & typeof log;
 type ResolveOptions = {
     mode: 'raw' | 'require' | 'script' | 'style';
