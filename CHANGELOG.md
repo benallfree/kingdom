@@ -1,5 +1,19 @@
 # kingdom
 
+## 0.0.10
+
+### Patch Changes
+
+- 3925606: Enh: improve client realtime subscription code
+- c742f07: Feat: chat
+- ae3cd4b: Enh: handle end-of-game restart
+- 9e5da99: Enh: add notice if there are no battles this round
+- 3ec4d17: Enh: auto-play battles
+- 5d32203: Enh: add notice if there are no enemies to fight
+- a3510ed: Feat: players are awarded new shards at the beginning of each round
+- 53d04ee: Enh: auto-advance round steps
+- 24d74e4: Feat: cell strength indicators
+
 ## 0.0.9
 
 ### Patch Changes
