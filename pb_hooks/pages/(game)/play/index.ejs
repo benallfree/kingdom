@@ -115,6 +115,11 @@
         Object.entries(this.clientRoomState.grid).forEach(([idx, cell]) => {
           cell.isFighting = false
         })
+        if (step === 'war') {
+          this.$nextTick(() => {
+            this.playBattle()
+          })
+        }
       })
 
       this.$watch(`roomState.chat.messages`, (messages) => {
