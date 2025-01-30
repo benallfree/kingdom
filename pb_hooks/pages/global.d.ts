@@ -7,7 +7,6 @@ type CellState = {
   playerId: string
   health: number
   strength: number
-  hasPrize: boolean
   attackedBy: string[]
 }
 

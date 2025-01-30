@@ -8,7 +8,6 @@
     for (let i = 1; i <= 100; i++) {
       roomState.grid[i] = {
         playerId: null,
-        hasPrize: this.prize?.idx == i,
         health: 0,
         ...roomState.grid[i],
       }
@@ -75,17 +74,6 @@
       }
       this.$watch('auth', updatePlayerState)
       this.$watch('roomState.players', updatePlayerState)
-
-      this.$watch('roomState.grid', (grid) => {
-        const cellEntries = Object.entries(grid)
-        for (let i = 0; i < cellEntries.length; i++) {
-          const [idx, cell] = cellEntries[i]
-          if (cell.hasPrize) {
-            this.prizeIdx = idx
-            break
-          }
-        }
-      })
 
       const updatePlayerCells = () => {
         const authId = this.auth?.id
@@ -178,7 +166,6 @@
       tryAdvance()
     },
     error: null,
-    prizeIdx: null,
     msRemaining: 0,
     pctRemaining: 0,
     auth: null,
@@ -550,7 +537,7 @@
               ></div>
               <div x-show="getCell(i).playerId ">
                 <div
-                  x-show="getCell(i).hasPrize"
+                  x-show="i == roomState.prize.idx"
                   class="absolute top-0 left-0 w-full h-full bg-yellow-300 opacity-20 animate-[pulse_1s_ease-in-out_infinite]"
                 ></div>
                 <div class="absolute top-0 left-0 w-full h-full">

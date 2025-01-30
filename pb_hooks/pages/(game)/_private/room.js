@@ -120,7 +120,6 @@ const pick = (obj, ...keys) => {
 
 const getSanitizedGridCell = (roomState_readonly, idx, userId = null) => {
   const cell_readonly = roomState_readonly.grid[idx]
-  const hasPrize = idx == roomState_readonly.prize?.idx
   const cell = {
     ...pick(cell_readonly, 'playerId', 'strength'),
   }
@@ -132,9 +131,6 @@ const getSanitizedGridCell = (roomState_readonly, idx, userId = null) => {
     if (attackedBy.length > 0) {
       cell.attackedBy = attackedBy
     }
-  }
-  if (hasPrize && cell_readonly.playerId) {
-    cell.hasPrize = true
   }
   if (cell_readonly.playerId === userId) {
     cell.health = cell_readonly.health
@@ -184,6 +180,12 @@ const getSanitizedRoomState = (roomState_readonly, userId = null) => {
     grid: getSanitizedGrid(roomState_readonly, userId),
     players: getSanitizedPlayers(roomState_readonly, userId),
     battles: getSanitizedBattles(roomState_readonly, userId),
+  }
+  if (
+    roomState_readonly.prize?.idx &&
+    roomState_readonly.grid[roomState_readonly.prize.idx]?.playerId
+  ) {
+    state.prize.idx = roomState_readonly.prize.idx
   }
 
   return state

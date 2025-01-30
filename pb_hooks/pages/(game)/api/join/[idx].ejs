@@ -85,10 +85,12 @@
       setRoomState(ROOM_ID, roomState, txApp)
 
       const hasPrize = roomState.prize?.idx == idx
-      roomState.grid[idx].hasPrize = hasPrize
 
       const publicDelta = {
         [`grid.${idx}`]: getSanitizedGridCell(roomState, idx),
+      }
+      if (hasPrize) {
+        publicDelta[`prize.idx`] = idx
       }
       deferred.push(() => {
         pushRoomStateDelta(
@@ -101,6 +103,9 @@
       const privateDelta = {
         [`grid.${idx}`]: getSanitizedGridCell(roomState, idx, auth.id),
         [`players`]: getSanitizedPlayers(roomState, auth.id),
+      }
+      if (hasPrize) {
+        privateDelta[`prize.idx`] = idx
       }
       deferred.push(() => {
         pushRoomStateDelta(
