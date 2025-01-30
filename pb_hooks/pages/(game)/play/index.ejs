@@ -39,7 +39,6 @@
               const { token, user, roomState } = res
               pb.authStore.save(token, user)
               this.auth = user
-              this.$nextTick(jdenticon)
               this.roomState = normalizeRoomState(roomState)
               this.savedRoomState = JSON.parse(JSON.stringify(this.roomState))
               this.isReady = true
@@ -58,10 +57,6 @@
 
       pb.realtime.subscribe('PB_CONNECT', (e) => {
         login()
-      })
-
-      this.$watch('roomState', (value) => {
-        this.$nextTick(jdenticon)
       })
 
       const updatePlayerState = () => {
@@ -214,6 +209,8 @@
       shards: 10,
       health: 0,
     },
+    dicebear: (seed) =>
+      `https://api.dicebear.com/9.x/identicon/svg?seed=${seed}`,
     idBase: 0,
     uniqId() {
       return this.idBase++
@@ -463,11 +460,12 @@
           ></progress>
         </div>
         <div class="relative w-16 h-8 mr-2 text-2xs font-mono">
-          <svg
-            class="size-4 absolute top-1/2 -translate-y-1/2 left-0"
+          <img
             x-show="auth"
-            x-bind:data-jdenticon-value="auth?.id"
-          ></svg>
+            class="size-4 absolute top-1/2 -translate-y-1/2 left-0"
+            x-bind:src="dicebear(auth?.id)"
+            alt="avatar"
+          />
           <div class="absolute top-0 right-0">
             💎<span x-text="String(playerState.shards).padStart(4, '0')"></span>
           </div>
@@ -541,10 +539,11 @@
                   class="absolute top-0 left-0 w-full h-full bg-yellow-300 opacity-20 animate-[pulse_1s_ease-in-out_infinite]"
                 ></div>
                 <div class="absolute top-0 left-0 w-full h-full">
-                  <svg
+                  <img
                     class="w-full h-full"
-                    x-bind:data-jdenticon-value="getCell(i).playerId"
-                  ></svg>
+                    x-bind:src="dicebear(getCell(i).playerId)"
+                    alt="avatar"
+                  />
                 </div>
                 <div
                   x-show="getCell(i).health"
@@ -577,10 +576,11 @@
                 x-show="getClientCell(i).busy"
                 class="absolute top-0 left-0 w-full h-full animate-spin"
               >
-                <svg
+                <img
                   class="w-full h-full"
-                  x-bind:data-jdenticon-value="auth?.id"
-                ></svg>
+                  x-bind:src="dicebear(auth?.id)"
+                  alt="avatar"
+                />
               </div>
               <div
                 x-show="getClientCell(i).isFighting"
@@ -600,10 +600,11 @@
             >
               <div class="flex items-start gap-1">
                 <div class="w-4 h-4 flex-shrink-0">
-                  <svg
+                  <img
                     class="w-full h-full"
-                    x-bind:data-jdenticon-value="message.playerId"
-                  ></svg>
+                    x-bind:src="dicebear(message.playerId)"
+                    alt="avatar"
+                  />
                 </div>
                 <div class="flex-1">
                   <div
@@ -647,11 +648,12 @@
 
       <div class="flex flex-col gap-1 text-sm">
         <div class="flex items-center gap-1">
-          <svg
+          <img
             x-show="auth"
-            class="w-4 h-4"
-            x-bind:data-jdenticon-value="auth?.id"
-          ></svg>
+            class="size-4"
+            x-bind:src="dicebear(auth?.id)"
+            alt="avatar"
+          />
           <code x-text="auth?.id"></code>
         </div>
         <div>Room: <code x-text="ROOM_ID"></code></div>
