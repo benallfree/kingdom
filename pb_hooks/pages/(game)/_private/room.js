@@ -63,14 +63,6 @@ const getRoomState = (roomId, dao = $app) => {
 
 const setRoomState = (roomId, state, dao = $app) => {
   const room = dao.findRecordById(`rooms`, roomId)
-  Object.entries(state.grid).forEach(([idx, cell]) => {
-    cell.strength = (() => {
-      if (cell.health < 10) return 0
-      if (cell.health < 50) return 1
-      if (cell.health < 100) return 2
-      return 3
-    })()
-  })
   room.set('state', JSON.stringify(state))
   dao.save(room)
 }
@@ -118,6 +110,13 @@ const pick = (obj, ...keys) => {
   return result
 }
 
+const getCellStrength = (cell) => {
+  if (cell.health < 10) return 0
+  if (cell.health < 50) return 1
+  if (cell.health < 100) return 2
+  return 3
+}
+
 const getSanitizedGridCell = (roomState_readonly, idx, userId = null) => {
   const cell_readonly = roomState_readonly.grid[idx]
   const cell = {
@@ -135,6 +134,7 @@ const getSanitizedGridCell = (roomState_readonly, idx, userId = null) => {
   if (cell_readonly.playerId === userId) {
     cell.health = cell_readonly.health
   }
+  cell.strength = getCellStrength(cell_readonly)
   return cell
 }
 
@@ -203,4 +203,5 @@ module.exports = {
   getSanitizedGridCell,
   getDefaultRoomState,
   getDefaultChatState,
+  getCellStrength,
 }
