@@ -49,10 +49,20 @@ type Route = {
 };
 declare const AfterBootstrapHandler: PagesInitializerFunc;
 
-type PageDataLoaderFunc<TData = any> = (api: Omit<PagesApi<TData>, 'data'>) => object;
-type MiddlewareLoaderFunc<TData = any> = (api: Omit<PagesApi<TData>, 'data'>) => object;
+type FilterOptions = {
+    filter?: string;
+    sort?: string;
+    limit?: number;
+    offset?: number;
+    filterParams?: Record<string, string>;
+};
+declare const findRecordByFilter: (collection: string, options?: Partial<FilterOptions>, dao?: any) => any;
+declare const findRecordsByFilter: (collection: string, options?: Partial<FilterOptions>, dao?: any) => any;
+
+type PageDataLoaderFunc<TData = any> = (api: Omit<PagesRequestContext<TData>, 'data'>) => object;
+type MiddlewareLoaderFunc<TData = any> = (api: Omit<PagesRequestContext<TData>, 'data'>) => object;
 type PagesParams<T = string> = Record<string, T | null | Array<T | null>>;
-type PagesGlobalApi = {
+type PagesGlobalContext = {
     stringify: typeof stringify;
     forEach: typeof forEach;
     keys: typeof keys;
@@ -60,11 +70,13 @@ type PagesGlobalApi = {
     merge: typeof merge;
     shuffle: typeof shuffle;
     env: (key: string) => string;
+    findRecordByFilter: typeof findRecordByFilter;
+    findRecordsByFilter: typeof findRecordsByFilter;
 } & typeof log;
 type ResolveOptions = {
     mode: 'raw' | 'require' | 'script' | 'style';
 };
-type PagesApi<TData = any> = {
+type PagesRequestContext<TData = any> = {
     asset: (path: string) => string;
     auth?: core.Record;
     data?: TData;
@@ -78,7 +90,7 @@ type PagesApi<TData = any> = {
     response: PagesResponse;
     slot: string;
     slots: Record<string, string>;
-} & PagesGlobalApi;
+} & PagesGlobalContext;
 type PagesConfig = {
     preprocessorExts: string[];
     debug: boolean;
@@ -88,20 +100,10 @@ type Cache = {
     config: PagesConfig;
 };
 
-declare const globalApi: PagesGlobalApi;
-
-type FilterOptions = {
-    filter?: string;
-    sort?: string;
-    limit?: number;
-    offset?: number;
-    filterParams?: Record<string, string>;
-};
-declare const findRecordByFilter: (collection: string, options?: Partial<FilterOptions>, dao?: any) => any;
-declare const findRecordsByFilter: (collection: string, options?: Partial<FilterOptions>, dao?: any) => any;
+declare const globalApi: PagesGlobalContext;
 
 declare const MiddlewareHandler: PagesMiddlewareFunc;
 
 declare const v23MiddlewareWrapper: (e: core.RequestEvent) => void;
 
-export { AfterBootstrapHandler, type Cache, type FilterOptions, MiddlewareHandler, type MiddlewareLoaderFunc, type PageDataLoaderFunc, type PagesApi, type PagesConfig, type PagesGlobalApi, type PagesParams, type ResolveOptions, findRecordByFilter, findRecordsByFilter, globalApi, v23MiddlewareWrapper };
+export { AfterBootstrapHandler, type Cache, type FilterOptions, MiddlewareHandler, type MiddlewareLoaderFunc, type PageDataLoaderFunc, type PagesConfig, type PagesGlobalContext, type PagesParams, type PagesRequestContext, type ResolveOptions, findRecordByFilter, findRecordsByFilter, globalApi, v23MiddlewareWrapper };
