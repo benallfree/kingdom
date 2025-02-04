@@ -1,5 +1,6 @@
 const __root = `${__hooks}/pages/(game)/_private`
 const { applyDeltas } = require(`${__root}/util`)
+const { healthToStrength } = require(`${__root}/room`)
 
 const calculateWarResults = (roomState_readonly) => {
   const { shuffle, dbg } = require('pocketpages')
@@ -64,8 +65,20 @@ const calculateWarResults = (roomState_readonly) => {
       public: {
         [`grid.${p1Idx}.playerId`]:
           outcome < 0 ? p1Id : outcome > 0 ? p2Id : null,
+        [`grid.${p1Idx}.strength`]:
+          outcome < 0
+            ? healthToStrength(p1Health)
+            : outcome > 0
+              ? healthToStrength(p2Health)
+              : 0,
         [`grid.${p2Idx}.playerId`]:
           outcome < 0 ? p1Id : outcome > 0 ? p2Id : null,
+        [`grid.${p2Idx}.strength`]:
+          outcome > 0
+            ? healthToStrength(p2Health)
+            : outcome < 0
+              ? healthToStrength(p1Health)
+              : 0,
       },
       [p1Id]: {
         [`players.${p1Id}.health`]: p1Health,
@@ -88,6 +101,20 @@ const calculateWarResults = (roomState_readonly) => {
 
     applyDeltas(room, deltas.public)
     applyDeltas(room, deltas.private)
+
+    if (outcome < 0) {
+      deltas.public[`grid.${p1Idx}.strength`] = healthToStrength(p1Health)
+      deltas.public[`grid.${p2Idx}.strength`] = 0
+    }
+    if (outcome > 0) {
+      deltas.public[`grid.${p1Idx}.strength`] = 0
+      deltas.public[`grid.${p2Idx}.strength`] = healthToStrength(p2Health)
+    }
+    if (outcome === 0) {
+      deltas.public[`grid.${p1Idx}.strength`] = deltas.public[
+        `grid.${p2Idx}.strength`
+      ] = 0
+    }
 
     // dbg(`outcome: ${outcome}`)
     // dbg(`p1(${p1Id}): ${p1.health}`)

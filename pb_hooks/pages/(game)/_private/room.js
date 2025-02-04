@@ -110,11 +110,15 @@ const pick = (obj, ...keys) => {
   return result
 }
 
-const getCellStrength = (cell) => {
-  if (cell.health < 10) return 0
-  if (cell.health < 50) return 1
-  if (cell.health < 100) return 2
+const healthToStrength = (health) => {
+  if (health < 10) return 0
+  if (health < 50) return 1
+  if (health < 100) return 2
   return 3
+}
+
+const getCellStrength = (cell) => {
+  return healthToStrength(cell.health)
 }
 
 const getSanitizedGridCell = (roomState_readonly, idx, userId = null) => {
@@ -204,4 +208,5 @@ module.exports = {
   getDefaultRoomState,
   getDefaultChatState,
   getCellStrength,
+  healthToStrength,
 }
