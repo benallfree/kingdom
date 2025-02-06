@@ -30,6 +30,20 @@ type Prize = {
 }
 
 type RoomState = {
+  meta: {
+    name: string
+    mod: {
+      title: string
+      textColor: string
+      bgColor: string
+      cta: {
+        link: string
+        text: string
+        bgColor: string
+        textColor: string
+      }
+    }
+  }
   prize: Prize
   grid: Record<string, CellState>
   players: Record<string, PlayerState>

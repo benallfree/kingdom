@@ -191,6 +191,20 @@
       return this.clientRoomState.grid[idx]
     },
     roomState: {
+      meta: {
+        name: 'Default room',
+        mod: {
+          title: '',
+          bgColor: '',
+          textColor: '',
+          cta: {
+            link: '',
+            text: '',
+            bgColor: '',
+            textColor: '',
+          },
+        },
+      },
       grid: {},
       players: {},
       roundNum: 0,
@@ -433,7 +447,23 @@
           class="relative -translate-y-1/2 top-[27px]"
         />
       </div>
-
+      <div
+        x-bind:style="`display: ${roomState.meta.mod.title ? 'block' : 'none'}; background-color: ${roomState.meta.mod.bgColor || '#ff0'}; color: ${roomState.meta.mod.textColor || '#000'};`"
+        class="text-2xs font-mono p-1 w-full"
+      >
+        <div class="flex flex-row items-center justify-between gap-2">
+          <div x-text="roomState.meta.mod.title"></div>
+          <div>
+            <a
+              :href="roomState.meta.mod.cta.link"
+              target="_blank"
+              x-bind:style="`background-color: ${roomState.meta.mod.cta.bgColor || '#0f0'}; color: ${roomState.meta.mod.cta.textColor || '#000'};`"
+              class="btn btn-xs rounded-md"
+              x-text="roomState.meta.mod.cta.text"
+            ></a>
+          </div>
+        </div>
+      </div>
       <div class="flex flex-row items-center gap-2 mt-2 w-full">
         <div class="ml-2 text-2xs font-mono flex flex-row items-center gap-1">
           <div

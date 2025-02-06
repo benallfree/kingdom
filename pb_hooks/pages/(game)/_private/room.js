@@ -19,6 +19,20 @@ const getDefaultChatState = () => {
 
 const getDefaultRoomState = (roomId) => {
   return {
+    meta: {
+      name: 'Default room',
+      mod: {
+        title: '',
+        textColor: '',
+        bgColor: '',
+        cta: {
+          link: '',
+          text: '',
+          bgColor: '',
+          textColor: '',
+        },
+      },
+    },
     shardsPerRound: DEFAULT_SHARDS_PER_ROUND,
     grid: {},
     players: {},
@@ -172,6 +186,7 @@ const getSanitizedRoomState = (roomState_readonly, userId = null) => {
   const state = {
     ...pick(
       roomState_readonly,
+      'meta',
       'roundNum',
       'maxRounds',
       'roundStartedAt',
