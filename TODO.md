@@ -1,5 +1,7 @@
 TODO:
 
+- enh: defending players do not get attacker's cell even if they win
+
 - bug: don't broadcast unchanged deltas
 - bug: update strengths in battles
 
