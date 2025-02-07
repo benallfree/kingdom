@@ -251,20 +251,19 @@
         this.roomState.grid[idx].playerId !== this.auth.id
       )
     },
-    gatherNeighborOpponents(idx) {
-      return gatherNeighbors(idx).filter((idx) => this.isOpponentCell(idx))
+    gatherNeighborOpponents(cellIdx) {
+      return gatherNeighbors(cellIdx).filter((idx) => this.isOpponentCell(idx))
     },
-    isAttackedByPlayer(idx) {
+    isAttackedByPlayer(cellIdx) {
       return (
         (this.roomState.step == 'assignment' ||
           this.roomState.step === 'war') &&
-        this.attacksByPlayer(idx).length > 0
+        this.attacksByPlayer(cellIdx).length > 0
       )
     },
     attacksByPlayer(idx) {
       return Object.entries(this.getCell(idx).attackedBy || {}).filter(
-        ([attackerIdx, isAttacking]) =>
-          this.playerCells.includes(+attackerIdx) && isAttacking
+        ([attackerIdx, isAttacking]) => isAttacking
       )
     },
     attackedByCount(idx) {
