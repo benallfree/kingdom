@@ -1,33 +1,29 @@
 const applyDeltas = (roomState, deltas) => {
-  Object.entries(deltas).forEach(([key, value]) => {
-    const keys = key.split('.')
-    const leafKey = keys.pop()
-
-    // Helper function to recursively apply value to all matching paths
-    const applyToNode = (node, remainingKeys) => {
-      if (remainingKeys.length === 0) {
-        node[leafKey] = value
-        return
-      }
-
-      const currentKey = remainingKeys[0]
-      const rest = remainingKeys.slice(1)
-
-      if (currentKey === '*') {
-        // Apply to all existing keys at this level
-        Object.keys(node).forEach((k) => {
-          if (!node[k]) node[k] = {}
-          applyToNode(node[k], rest)
-        })
-      } else {
-        // Regular key
-        if (!node[currentKey]) node[currentKey] = {}
-        applyToNode(node[currentKey], rest)
-      }
+  // Helper function to recursively merge objects
+  const mergeObjects = (target, source) => {
+    if (Array.isArray(source) || Array.isArray(target)) {
+      throw new Error('Arrays are not supported in deltas')
     }
 
-    applyToNode(roomState, keys)
-  })
+    Object.entries(source).forEach(([key, value]) => {
+      if (value === null) {
+        // Delete property if value is null
+        delete target[key]
+      } else if (typeof value === 'object' && value !== null) {
+        // Initialize target key if it doesn't exist
+        if (!target[key] || typeof target[key] !== 'object') {
+          target[key] = {}
+        }
+        // Recursively merge nested objects
+        mergeObjects(target[key], value)
+      } else {
+        // Set value directly for primitives
+        target[key] = value
+      }
+    })
+  }
+
+  mergeObjects(roomState, deltas)
 }
 
 module.exports = { applyDeltas }

@@ -4,11 +4,19 @@
 <%-resolve('particle.js', {mode: 'script'}) %>
 <%-resolve('particle.css', {mode: 'style'}) %>
 <script>
+  const DEFAULT_CLIENT_CELL = {
+    busy: false,
+    isFighting: false,
+  }
+  const DEFAULT_CELL = {
+    playerId: null,
+    health: 0,
+    attackedBy: {},
+  }
   const normalizeRoomState = (roomState) => {
     for (let i = 1; i <= 100; i++) {
       roomState.grid[i] = {
-        playerId: null,
-        health: 0,
+        ...DEFAULT_CELL,
         ...roomState.grid[i],
       }
     }
@@ -175,9 +183,7 @@
     getCell(idx) {
       if (!this.roomState.grid[idx]) {
         this.roomState.grid[idx] = {
-          playerId: null,
-          health: 0,
-          attackedBy: [],
+          ...DEFAULT_CELL,
         }
       }
       return this.roomState.grid[idx]
@@ -185,7 +191,7 @@
     getClientCell(idx) {
       if (!this.clientRoomState.grid[idx]) {
         this.clientRoomState.grid[idx] = {
-          busy: false,
+          ...DEFAULT_CLIENT_CELL,
         }
       }
       return this.clientRoomState.grid[idx]
@@ -249,10 +255,17 @@
       return (
         (this.roomState.step == 'assignment' ||
           this.roomState.step === 'war') &&
-        this.roomState.grid[idx].attackedBy?.some((idx) =>
-          this.playerCells.includes(idx)
-        )
+        this.attacksByPlayer(idx).length > 0
       )
+    },
+    attacksByPlayer(idx) {
+      return Object.entries(this.getCell(idx).attackedBy || {}).filter(
+        ([attackerIdx, isAttacking]) =>
+          this.playerCells.includes(+attackerIdx) && isAttacking
+      )
+    },
+    attackedByCount(idx) {
+      return this.attacksByPlayer(idx).length
     },
     handleCellClick(idx) {
       if (this.roomState.step == 'placement') {
@@ -351,44 +364,55 @@
 
       this.applyBattleStart(idx)
       this.applyBattleEnd(idx)
-      if (outcome <= 0) pop(`c${vs[1]}`)
-      if (outcome >= 0) pop(`c${vs[0]}`)
+      const attackerWins = outcome <= 0
+      const defenderWins = outcome === 0 || outcome === 1
+      const selfDestruct = outcome === 2
+      if (attackerWins) pop(`c${vs[1]}`)
+      if (defenderWins) pop(`c${vs[0]}`)
+      if (selfDestruct)
+        pop(`c${vs[0]}`, () => `hsl(${Math.random() * 20 + 15}, 40%, 25%)`)
     },
-    applyBattleStart(idx) {
-      const battle = this.roomState.battles[idx]
+    applyBattleStart(battleIdx) {
+      const battle = this.roomState.battles[battleIdx]
       const { vs, deltas, outcome } = battle
-      Object.entries(this.roomState.grid).forEach(([idx, cell]) => {
-        this.getClientCell(idx).isFighting = false
-      })
-      vs.forEach((idx) => {
-        this.getClientCell(idx).isFighting = true
+      this.resetClientCells()
+      vs.forEach((playerIdx) => {
+        this.getClientCell(playerIdx).isFighting = true
       })
     },
-    applyBattleEnd(idx) {
-      const battle = this.roomState.battles[idx]
+    resetClientCell(idx) {
+      this.getClientCell(idx).isFighting = false
+    },
+    resetClientCells() {
+      Object.entries(this.roomState.grid).forEach(([cellIdx, cell]) => {
+        this.resetClientCell(cellIdx)
+      })
+    },
+    applyBattleEnd(battleIdx) {
+      const battle = this.roomState.battles[battleIdx]
       const { vs, deltas, outcome } = battle
-      this.applyBattleDeltas(idx)
+      this.applyBattleDeltas(battleIdx)
     },
-    applyBattleDeltas(idx) {
-      if (idx < 0) return
-      const battle = this.roomState.battles[idx]
+    applyBattleDeltas(battleIdx) {
+      if (battleIdx < 0) return
+      const battle = this.roomState.battles[battleIdx]
       const { deltas, vs, outcome } = battle
-      const [p1Idx, p2Idx] = vs
+      const [attackerIdx, defenderIdx] = vs
+      const attackerCell = this.getCell(attackerIdx)
+      const defenderCell = this.getCell(defenderIdx)
       if (outcome <= 0) {
-        const neighborCells = gatherNeighbors(p2Idx)
+        const neighborCells = gatherNeighbors(defenderIdx)
         neighborCells.forEach((nidx) => {
-          this.getCell(nidx).attackedBy =
-            this.getCell(nidx).attackedBy?.filter((id) => id !== p2Idx) || []
+          delete this.getCell(nidx).attackedBy[defenderIdx]
         })
-        this.getCell(p2Idx).attackedBy = []
+        defenderCell.attackedBy = {}
       }
       if (outcome >= 0) {
-        const neighborCells = gatherNeighbors(p1Idx)
+        const neighborCells = gatherNeighbors(attackerIdx)
         neighborCells.forEach((nidx) => {
-          this.getCell(nidx).attackedBy =
-            this.getCell(nidx).attackedBy?.filter((id) => id !== p1Idx) || []
+          delete this.getCell(nidx).attackedBy[attackerIdx]
         })
-        this.getCell(p1Idx).attackedBy = []
+        attackerCell.attackedBy = {}
       }
       Object.entries(deltas).forEach(([idx, delta]) => {
         applyDeltas(this.roomState, delta)
@@ -399,6 +423,7 @@
     },
     seekBattle(idx) {
       this.revertRoomState()
+      this.resetClientCells()
       for (let i = -1; i < idx; i++) {
         this.applyBattleDeltas(i)
       }
@@ -590,19 +615,21 @@
                 x-show="selectedIdx == i"
                 class="absolute top-0 left-0 w-full h-full border-2 border-green-600 animate-pulse"
               ></div>
-              <div
-                x-show="actionableNeighbors.includes(i)"
-                class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
-              ></div>
-              <div
-                x-show="isAttackedByPlayer(i)"
-                class="absolute top-0 left-0 w-full h-full border-2 border-red-600 bg-red-600 animate-pulse"
-              ></div>
-              <div
-                x-show="isAttackedByPlayer(i)"
-                x-text="getCell(i).attackedBy?.length"
-                class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 animate-pulse flex items-center justify-center"
-              ></div>
+              <div x-show="roomState.step==='assignment'">
+                <div
+                  x-show="actionableNeighbors.includes(i)"
+                  class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
+                ></div>
+                <div
+                  x-show="isAttackedByPlayer(i)"
+                  class="absolute top-0 left-0 w-full h-full border-2 border-red-600 bg-red-600 animate-pulse"
+                ></div>
+                <div
+                  x-show="isAttackedByPlayer(i)"
+                  x-text="attackedByCount(i)"
+                  class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 animate-pulse flex items-center justify-center"
+                ></div>
+              </div>
               <div
                 x-show="getClientCell(i).busy"
                 class="absolute top-0 left-0 w-full h-full animate-spin"

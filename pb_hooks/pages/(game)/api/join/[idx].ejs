@@ -13,6 +13,7 @@
   const {
     getRoomState,
     setRoomState,
+    healthToStrength,
     pushRoomStateDelta,
     getSanitizedGridCell,
     getSanitizedPlayers,
@@ -75,42 +76,81 @@
       roomState.players[auth.id].health += 1
 
       if (!roomState.grid[idx]) {
-        roomState.grid[idx] = { playerId: auth.id, health: 0 }
+        roomState.grid[idx] = { health: 0 }
       }
 
+      const oldCell = { ...roomState.grid[idx] }
       roomState.grid[idx].playerId = auth.id
       roomState.grid[idx].health += 1
-      roomState.roundStartedAt = Date.now()
+      roomState.grid[idx].selfDestructAt = Date.now() + roomState.cellTtl
+      const playerIdChanged = oldCell.playerId !== auth.id
+      const strengthChanged =
+        healthToStrength(oldCell.health) !==
+        healthToStrength(roomState.grid[idx].health)
 
       setRoomState(ROOM_ID, roomState, txApp)
 
       const hasPrize = roomState.prize?.idx == idx
 
-      const publicDelta = {
-        [`grid.${idx}`]: getSanitizedGridCell(roomState, idx),
+      const playerDelta = {
+        grid: {
+          [`${idx}`]: {
+            playerId: auth.id,
+            health: roomState.grid[idx].health,
+            selfDestructAt: roomState.grid[idx].selfDestructAt,
+          },
+        },
+        players: {
+          [auth.id]: {
+            shards: roomState.players[auth.id].shards,
+            health: roomState.players[auth.id].health,
+          },
+        },
       }
-      if (hasPrize) {
-        publicDelta[`prize.idx`] = idx
-      }
-      deferred.push(() => {
-        pushRoomStateDelta(
-          ROOM_ID,
-          publicDelta,
-          (client) => client.get('auth').id !== auth.id
-        )
-      })
 
-      const privateDelta = {
-        [`grid.${idx}`]: getSanitizedGridCell(roomState, idx, auth.id),
-        [`players`]: getSanitizedPlayers(roomState, auth.id),
+      const publicDelta = {}
+
+      if (playerIdChanged || strengthChanged) {
+        publicDelta.grid = {
+          [`${idx}`]: {},
+        }
       }
+      if (playerIdChanged) {
+        publicDelta.grid[`${idx}`].playerId = auth.id
+      }
+      if (strengthChanged) {
+        publicDelta.grid[`${idx}`].strength = healthToStrength(
+          roomState.grid[idx].health
+        )
+      }
+
       if (hasPrize) {
-        privateDelta[`prize.idx`] = idx
+        Object.assign(playerDelta, {
+          prize: {
+            idx,
+          },
+        })
+        Object.assign(publicDelta, {
+          prize: {
+            idx,
+          },
+        })
       }
+
+      if (Object.keys(publicDelta).length > 0) {
+        deferred.push(() => {
+          pushRoomStateDelta(
+            ROOM_ID,
+            publicDelta,
+            (client) => client.get('auth').id !== auth.id
+          )
+        })
+      }
+
       deferred.push(() => {
         pushRoomStateDelta(
           ROOM_ID,
-          { ...publicDelta, ...privateDelta },
+          playerDelta,
           (client) => client.get('auth').id === auth.id
         )
       })
