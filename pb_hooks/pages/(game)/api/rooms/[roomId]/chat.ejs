@@ -39,7 +39,7 @@
 
     setRoomState(roomId, roomState, txApp)
     deferred.push(() => {
-      pushRoomStateDelta(roomId, { [`chat.messages.${key}`]: { text } })
+      pushRoomStateDelta(roomId, { chat: { messages: { [key]: { text } } } })
     })
   })
   deferred.forEach((fn) => fn())
