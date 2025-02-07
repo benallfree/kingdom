@@ -1,6 +1,6 @@
 {
   "name": "kingdom",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "scripts": {
     "serve": "pocketbase serve --dir=pb_data",
     "dev": "concurrently \"npm:dev:*\"",
