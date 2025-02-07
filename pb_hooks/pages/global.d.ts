@@ -7,7 +7,8 @@ type CellState = {
   playerId: string
   health: number
   strength: number
-  attackedBy: string[]
+  attackedBy: Record<string, boolean>
+  selfDestructAt: number
 }
 
 type Delta = Record<string, any>
@@ -30,6 +31,20 @@ type Prize = {
 }
 
 type RoomState = {
+  meta: {
+    name: string
+    mod: {
+      title: string
+      textColor: string
+      bgColor: string
+      cta: {
+        link: string
+        text: string
+        bgColor: string
+        textColor: string
+      }
+    }
+  }
   prize: Prize
   grid: Record<string, CellState>
   players: Record<string, PlayerState>
@@ -39,6 +54,7 @@ type RoomState = {
   step: 'placement' | 'assignment' | 'war' | 'end'
   stepStartedAt: number
   stepTtl: number
+  cellTtl: number
   battles: Record<string, BattleState>
   chat: {
     ttl: number

@@ -1,5 +1,7 @@
 const __root = `${__hooks}/pages/(game)/_private`
 const { applyDeltas } = require(`${__root}/util`)
+const { healthToStrength } = require(`${__root}/room`)
+const { DEFAULT_CELL_SELF_DESTRUCT_TTL } = require(`${__root}/constants`)
 
 const calculateWarResults = (roomState_readonly) => {
   const { shuffle, dbg } = require('pocketpages')
@@ -7,79 +9,132 @@ const calculateWarResults = (roomState_readonly) => {
 
   const protected = {}
   const allAttacks = shuffle(
-    Object.entries(room.grid).reduce((acc, [p2Idx, cell]) => {
-      cell.attackedBy?.forEach((p1Idx) => {
-        acc.push([+p1Idx, +p2Idx])
-      })
+    Object.entries(room.grid).reduce((acc, [defenderIdx, defenderCell]) => {
+      Object.entries(defenderCell.attackedBy || {}).forEach(
+        ([attackerIdx, isAttacking]) => {
+          if (isAttacking) {
+            acc.push([+attackerIdx, +defenderIdx])
+          }
+        }
+      )
       return acc
     }, [])
   )
   //   dbg(`allAttacks`, allAttacks)
 
   const battles = []
-  allAttacks.forEach(([p1Idx, p2Idx]) => {
-    if (protected[p1Idx] || protected[p2Idx]) return
+  allAttacks.forEach(([attackerIdx, defenderIdx]) => {
+    if (protected[attackerIdx] || protected[defenderIdx]) return
     // dbg(`\n===================\nCalculating battle ${p1Idx} vs ${p2Idx}`)
-    const p1Cell = room.grid[p1Idx]
-    const p2Cell = room.grid[p2Idx]
-    const p1Id = p1Cell.playerId
-    const p2Id = p2Cell.playerId
-    if (!p1Id || !p2Id) {
+    const attackerCell = room.grid[attackerIdx]
+    const defenderCell = room.grid[defenderIdx]
+    const attackerId = attackerCell.playerId
+    const defenderId = defenderCell.playerId
+    if (!attackerId || !defenderId) {
       //   dbg(`No battle, one of the players is dead`, { p1Id, p2Id })
       return
     } // no battle, one of the players is dead
-    const p1 = room.players[p1Id]
-    const p2 = room.players[p2Id]
+    const attacker = room.players[attackerId]
+    const defender = room.players[defenderId]
     // dbg(`p1(${p1Id}): ${p1.health}`)
     // dbg(`p2(${p2Id}): ${p2.health}`)
     // dbg(`c1(${p1Idx}): ${p1Cell.health}`)
     // dbg(`c2(${p2Idx}): ${p2Cell.health}`)
 
     // The damage is the minimum of the two healths
-    const damage = Math.min(p1Cell.health, p2Cell.health)
+    const damage = Math.min(attackerCell.health, defenderCell.health)
     // dbg(`damage: ${damage}`)
     const outcome =
-      p1Cell.health > p2Cell.health ? -1 : p1Cell.health < p2Cell.health ? 1 : 0
+      attackerCell.health > defenderCell.health
+        ? -1
+        : attackerCell.health < defenderCell.health
+          ? 1
+          : 0
+
+    const attackerWins = outcome < 0
+    const defenderWins = outcome > 0
+    const draw = outcome === 0
     // dbg(`outcome: ${outcome}`)
 
-    const p1Health = p1.health - damage + (outcome < 0 ? 1 : 0)
-    const p2Health = p2.health - damage + (outcome > 0 ? 1 : 0)
-    const c1Health = p1Cell.health - damage + (outcome > 0 ? 1 : 0) || null
-    const c2Health = p2Cell.health - damage + (outcome < 0 ? 1 : 0) || null
+    const attackerHealth = attacker.health - damage + (attackerWins ? 1 : 0)
+    const defenderHealth = defender.health - damage
+    const attackerCellHealth = attackerCell.health - damage
+    const defenderCellHealth =
+      defenderCell.health - damage + (attackerWins ? 1 : 0)
 
-    if (outcome <= 0) {
-      protected[p2Idx] = true
-    }
-    if (outcome >= 0) {
-      protected[p1Idx] = true
-    }
+    protected[attackerIdx] = defenderWins || draw
+    protected[defenderIdx] = attackerWins || draw
 
+    const now = Date.now()
     const deltas = {
       private: {
-        [`grid.${p1Idx}.health`]: c1Health,
-        [`grid.${p2Idx}.health`]: c2Health,
-        [`players.${p1Id}.health`]: p1Health,
-        [`players.${p2Id}.health`]: p2Health,
+        grid: {
+          [`${attackerIdx}`]: {
+            health: attackerCellHealth,
+            selfDestructAt: now + room.cellTtl,
+          },
+          [`${defenderIdx}`]: {
+            health: defenderCellHealth,
+            selfDestructAt: attackerWins ? now + room.cellTtl : null,
+          },
+        },
+        players: {
+          [`${attackerId}`]: {
+            health: attackerHealth,
+          },
+          [`${defenderId}`]: {
+            health: defenderHealth,
+          },
+        },
       },
       public: {
-        [`grid.${p1Idx}.playerId`]:
-          outcome < 0 ? p1Id : outcome > 0 ? p2Id : null,
-        [`grid.${p2Idx}.playerId`]:
-          outcome < 0 ? p1Id : outcome > 0 ? p2Id : null,
+        grid: {
+          [`${attackerIdx}`]: {
+            playerId: attackerWins ? attackerId : null,
+            strength: healthToStrength(attackerCellHealth),
+          },
+          [`${defenderIdx}`]: {
+            playerId: defenderWins
+              ? defenderId
+              : attackerWins
+                ? attackerId
+                : null,
+            strength: healthToStrength(defenderCellHealth),
+          },
+        },
       },
-      [p1Id]: {
-        [`players.${p1Id}.health`]: p1Health,
-        [`grid.${p1Idx}.health`]: outcome < 0 ? c1Health : null,
-        [`grid.${p2Idx}.health`]: outcome < 0 ? c2Health : null,
+      [attackerId]: {
+        players: {
+          [`${attackerId}`]: {
+            health: attackerHealth,
+          },
+        },
+        grid: {
+          [`${attackerIdx}`]: {
+            health: attackerWins ? attackerCellHealth : null,
+            selfDestructAt: now + room.cellTtl,
+          },
+          [`${defenderIdx}`]: {
+            health: attackerWins ? defenderCellHealth : null,
+            selfDestructAt: attackerWins ? now + room.cellTtl : null,
+          },
+        },
       },
-      [p2Id]: {
-        [`players.${p2Id}.health`]: p2Health,
-        [`grid.${p1Idx}.health`]: outcome > 0 ? c1Health : null,
-        [`grid.${p2Idx}.health`]: outcome > 0 ? c2Health : null,
+      [defenderId]: {
+        players: {
+          [`${defenderId}`]: {
+            health: defenderHealth,
+          },
+        },
+        grid: {
+          [`${defenderIdx}`]: {
+            health: defenderWins ? defenderCellHealth : null,
+          },
+        },
       },
     }
     const battle = {
-      vs: [p1Idx, p2Idx],
+      vs: [attackerIdx, defenderIdx],
       outcome,
       damage,
       deltas,
@@ -89,13 +144,37 @@ const calculateWarResults = (roomState_readonly) => {
     applyDeltas(room, deltas.public)
     applyDeltas(room, deltas.private)
 
-    // dbg(`outcome: ${outcome}`)
-    // dbg(`p1(${p1Id}): ${p1.health}`)
-    // dbg(`p2(${p2Id}): ${p2.health}`)
-    // dbg(`c1(${p1Cell.playerId}): ${p1Cell.health}`)
-    // dbg(`c2(${p2Cell.playerId}): ${p2Cell.health}`)
-
     battles.push(battle)
+  })
+
+  // Cull idle cells
+  const idleCells = shuffle(Object.entries(room.grid))
+  dbg(`idleCells`, idleCells)
+  idleCells.forEach(([idx, cell]) => {
+    if (!cell.playerId) return
+    if (cell.selfDestructAt > Date.now()) return
+    room.players[cell.playerId].health -= cell.health
+    battles.push({
+      vs: [idx],
+      outcome: 2,
+      damage: cell.health,
+      deltas: {
+        private: {
+          grid: { [`${idx}`]: null },
+        },
+        public: {
+          grid: { [`${idx}`]: null },
+        },
+        [cell.playerId]: {
+          grid: { [`${idx}`]: null },
+          players: {
+            [`${cell.playerId}`]: {
+              health: room.players[cell.playerId].health,
+            },
+          },
+        },
+      },
+    })
   })
 
   return battles

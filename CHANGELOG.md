@@ -1,5 +1,13 @@
 # kingdom
 
+## 0.0.11
+
+### Patch Changes
+
+- 377e5f4: Enh: leave padding around avatar and grid cell border
+- c274441: Feat: room name and MOD
+- 062815e: Feat: cell self-destruct, defenders don't capture cells, and delta refactor
+
 ## 0.0.10
 
 ### Patch Changes

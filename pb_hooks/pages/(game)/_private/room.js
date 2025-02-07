@@ -7,6 +7,7 @@ const {
   DEFAULT_SHARDS_PER_ROUND,
   DEFAULT_CHAT_TTL,
   DEFAULT_MAX_CHATS,
+  DEFAULT_CELL_SELF_DESTRUCT_TTL,
 } = require(`${__root}/constants`)
 
 const getDefaultChatState = () => {
@@ -19,6 +20,20 @@ const getDefaultChatState = () => {
 
 const getDefaultRoomState = (roomId) => {
   return {
+    meta: {
+      name: 'Default room',
+      mod: {
+        title: '',
+        textColor: '',
+        bgColor: '',
+        cta: {
+          link: '',
+          text: '',
+          bgColor: '',
+          textColor: '',
+        },
+      },
+    },
     shardsPerRound: DEFAULT_SHARDS_PER_ROUND,
     grid: {},
     players: {},
@@ -49,6 +64,7 @@ const getDefaultRoomState = (roomId) => {
     </div>`,
     },
     chat: getDefaultChatState(),
+    cellTtl: DEFAULT_CELL_SELF_DESTRUCT_TTL,
   }
 }
 
@@ -110,11 +126,15 @@ const pick = (obj, ...keys) => {
   return result
 }
 
-const getCellStrength = (cell) => {
-  if (cell.health < 10) return 0
-  if (cell.health < 50) return 1
-  if (cell.health < 100) return 2
+const healthToStrength = (health) => {
+  if (health < 10) return 0
+  if (health < 50) return 1
+  if (health < 100) return 2
   return 3
+}
+
+const getCellStrength = (cell) => {
+  return healthToStrength(cell.health)
 }
 
 const getSanitizedGridCell = (roomState_readonly, idx, userId = null) => {
@@ -122,16 +142,23 @@ const getSanitizedGridCell = (roomState_readonly, idx, userId = null) => {
   const cell = {
     ...pick(cell_readonly, 'playerId', 'strength'),
   }
-  if (cell_readonly.attackedBy?.length > 0) {
-    const attackedBy =
-      cell_readonly.attackedBy?.filter(
-        (idx) => roomState_readonly.grid[idx]?.playerId === userId
-      ) || []
-    if (attackedBy.length > 0) {
+  const attackingCellIndices = Object.entries(cell_readonly.attackedBy || {})
+    .filter(([attackerIdx, isAttacking]) => isAttacking)
+    .map(([attackerIdx]) => +attackerIdx)
+
+  if (attackingCellIndices.length > 0) {
+    const attackedBy = attackingCellIndices.reduce((acc, attackerIdx) => {
+      if (roomState_readonly.grid[attackerIdx].playerId === userId) {
+        acc[attackerIdx] = true
+      }
+      return acc
+    }, {})
+    if (Object.keys(attackedBy).length > 0) {
       cell.attackedBy = attackedBy
     }
   }
   if (cell_readonly.playerId === userId) {
+    cell.selfDestructAt = cell_readonly.selfDestructAt
     cell.health = cell_readonly.health
   }
   cell.strength = getCellStrength(cell_readonly)
@@ -168,6 +195,7 @@ const getSanitizedRoomState = (roomState_readonly, userId = null) => {
   const state = {
     ...pick(
       roomState_readonly,
+      'meta',
       'roundNum',
       'maxRounds',
       'roundStartedAt',
@@ -204,4 +232,5 @@ module.exports = {
   getDefaultRoomState,
   getDefaultChatState,
   getCellStrength,
+  healthToStrength,
 }

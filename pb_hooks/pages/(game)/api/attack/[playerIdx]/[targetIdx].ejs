@@ -3,40 +3,40 @@
     throw new BadRequestError('Unauthorized')
   }
 
-  const playerIdx = parseInt(params.playerIdx)
-  const targetIdx = parseInt(params.targetIdx)
+  const attackerIdx = parseInt(params.attackerIdx)
+  const defenderIdx = parseInt(params.defenderIdx)
 
-  if (!playerIdx || !targetIdx) {
+  if (!attackerIdx || !defenderIdx) {
     throw new BadRequestError('Missing playerIdx or targetIdx')
   }
 
   const stepGuard = (roomState) => {
     if (roomState.step !== 'assignment') {
-      error = { message: `You can't do that right now.`, targetIdx }
+      error = { message: `You can't do that right now.`, defenderIdx }
       return
     }
     if (roomState.stepStartedAt + roomState.stepTtl < Date.now()) {
-      error = { message: `Assignment phase has ended.`, targetIdx }
+      error = { message: `Assignment phase has ended.`, defenderIdx }
       return
     }
     return true
   }
 
   const isPlayerCellOwnedByAuthUser = (roomState) => {
-    if (roomState.grid[playerIdx]?.playerId !== auth.id) {
-      error = { message: `Origin cell is not yours.`, idx: playerIdx }
+    if (roomState.grid[attackerIdx]?.playerId !== auth.id) {
+      error = { message: `Origin cell is not yours.`, idx: attackerIdx }
       return
     }
     return true
   }
 
   const isTargetCellOwnedByOtherPlayer = (roomState) => {
-    if (!roomState.grid[targetIdx]?.playerId) {
-      error = { message: `Target cell is empty.`, idx: targetIdx }
+    if (!roomState.grid[defenderIdx]?.playerId) {
+      error = { message: `Target cell is empty.`, idx: defenderIdx }
       return
     }
-    if (roomState.grid[targetIdx]?.playerId === auth.id) {
-      error = { message: `Cannot attack your own cell.`, idx: targetIdx }
+    if (roomState.grid[defenderIdx]?.playerId === auth.id) {
+      error = { message: `Cannot attack your own cell.`, idx: defenderIdx }
       return
     }
     return true
@@ -44,12 +44,12 @@
 
   const isTargetAdjacentToPlayerCell = () => {
     const { gatherNeighbors } = resolve('cell-math')
-    const neighbors = gatherNeighbors(playerIdx)
-    dbg({ neighbors, targetIdx, playerIdx })
-    if (!neighbors.includes(targetIdx)) {
+    const neighbors = gatherNeighbors(attackerIdx)
+    dbg({ neighbors, defenderIdx, attackerIdx })
+    if (!neighbors.includes(defenderIdx)) {
       error = {
         message: `Target cell is not adjacent to origin cell.`,
-        idx: targetIdx,
+        idx: defenderIdx,
       }
       return
     }
@@ -60,8 +60,8 @@
     return (
       stepGuard(roomState) &&
       isTargetAdjacentToPlayerCell() &&
-      isPlayerCellOwnedByAuthUser(roomState, playerIdx) &&
-      isTargetCellOwnedByOtherPlayer(roomState, targetIdx)
+      isPlayerCellOwnedByAuthUser(roomState, attackerIdx) &&
+      isTargetCellOwnedByOtherPlayer(roomState, defenderIdx)
     )
   }
 
@@ -79,23 +79,26 @@
       roomState = getRoomState(ROOM_ID, txApp)
       if (!isAttackAllowed(roomState)) return
 
-      if (!roomState.grid[targetIdx].attackedBy) {
-        roomState.grid[targetIdx].attackedBy = []
+      if (!roomState.grid[defenderIdx].attackedBy) {
+        roomState.grid[defenderIdx].attackedBy = {}
       }
-      if (roomState.grid[targetIdx].attackedBy.includes(playerIdx)) {
-        roomState.grid[targetIdx].attackedBy = roomState.grid[
-          targetIdx
-        ].attackedBy.filter((id) => id !== playerIdx)
+      if (roomState.grid[defenderIdx].attackedBy[attackerIdx]) {
+        delete roomState.grid[defenderIdx].attackedBy[attackerIdx]
       } else {
-        roomState.grid[targetIdx].attackedBy.push(playerIdx)
+        roomState.grid[defenderIdx].attackedBy[attackerIdx] = true
       }
 
       setRoomState(ROOM_ID, roomState, txApp)
 
       const delta = {
-        [`grid.${targetIdx}.attackedBy`]: roomState.grid[
-          targetIdx
-        ].attackedBy.filter((idx) => roomState.grid[idx]?.playerId === auth.id),
+        grid: {
+          [`${defenderIdx}`]: {
+            attackedBy: {
+              [`${attackerIdx}`]:
+                !!roomState.grid[defenderIdx].attackedBy[attackerIdx] || null,
+            },
+          },
+        },
       }
       deferred.push(() => {
         pushRoomStateDelta(

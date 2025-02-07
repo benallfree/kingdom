@@ -1,4 +1,6 @@
-function pop(id) {
+const defaultColorFactory = (x, y) => `hsl(${Math.random() * 60}, 70%, 60%)`
+
+function pop(id, colorFactory = defaultColorFactory) {
   const e = document.getElementById(id)
   // Get element's position relative to the viewport
   const rect = e.getBoundingClientRect()
@@ -9,11 +11,11 @@ function pop(id) {
   for (let i = 0; i < 30; i++) {
     // We call the function createParticle 30 times
     // As we need the coordinates of the mouse, we pass them as arguments
-    createParticle(x, y)
+    createParticle(x, y, colorFactory)
   }
 }
 
-function createParticle(x, y) {
+function createParticle(x, y, colorFactory = defaultColorFactory) {
   const particle = document.createElement('particle')
   document.body.appendChild(particle)
 
@@ -22,7 +24,7 @@ function createParticle(x, y) {
   particle.style.width = `${size}px`
   particle.style.height = `${size}px`
   // Generate a random color in a red/orange palette
-  particle.style.background = `hsl(${Math.random() * 60}, 70%, 60%)`
+  particle.style.background = colorFactory(x, y)
 
   // Generate a random x & y destination within a distance of 75px from the origin
   const destinationX = x + (Math.random() - 0.5) * 30

@@ -186,516 +186,6 @@ ${v.stack}`;
   }
 });
 
-// node_modules/pocketbase-node/dist/index.js
-var require_dist3 = __commonJS({
-  "node_modules/pocketbase-node/dist/index.js"(exports2, module2) {
-    "use strict";
-    init_cjs_shims();
-    var __defProp2 = Object.defineProperty;
-    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
-    var __getOwnPropNames2 = Object.getOwnPropertyNames;
-    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
-    var __export2 = (target, all) => {
-      for (var name in all)
-        __defProp2(target, name, { get: all[name], enumerable: true });
-    };
-    var __copyProps2 = (to, from, except, desc) => {
-      if (from && typeof from === "object" || typeof from === "function") {
-        for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp2.call(to, key) && key !== except)
-            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
-      }
-      return to;
-    };
-    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
-    var src_exports2 = {};
-    __export2(src_exports2, {
-      child_process: () => child_process_exports,
-      fs: () => fs_exports,
-      path: () => path_exports,
-      process: () => process_exports
-    });
-    module2.exports = __toCommonJS2(src_exports2);
-    var fs_exports = {};
-    __export2(fs_exports, {
-      existsSync: () => existsSync,
-      mkdirSync: () => mkdirSync,
-      readFileSync: () => readFileSync,
-      writeFileSync: () => writeFileSync
-    });
-    function byteArrayToUtf8(byteArray) {
-      let utf8String = "";
-      for (let i = 0; i < byteArray.length; i++) {
-        utf8String += String.fromCharCode(byteArray[i]);
-      }
-      return decodeURIComponent(escape(utf8String));
-    }
-    var readFileSync = (path3, options2) => {
-      if (typeof path3 !== "string") {
-        throw new Error("path must be a string");
-      }
-      const res = $os.readFile(path3);
-      if (typeof res === "string") {
-        return res;
-      }
-      const s = byteArrayToUtf8(res);
-      return s;
-    };
-    var existsSync = (pathLike, fileType = "both") => {
-      const isDir = (() => {
-        try {
-          $os.readDir(pathLike);
-          return true;
-        } catch {
-          return false;
-        }
-      })();
-      const isFile = (() => {
-        if (isDir) {
-          return false;
-        }
-        try {
-          return $filesystem.fileFromPath(pathLike) !== null;
-        } catch {
-          return false;
-        }
-      })();
-      return fileType === "file" ? isFile : fileType === "dir" ? isDir : isFile || isDir;
-    };
-    var writeFileSync = (path3, data, options2) => {
-      if (typeof path3 !== "string") {
-        throw new Error("path must be a string");
-      }
-      if (typeof data !== "string") {
-        throw new Error("data must be a string");
-      }
-      const mode = (() => {
-        if (options2 && typeof options2 === "object" && "mode" in options2) {
-          return options2.mode;
-        }
-        return 420;
-      })();
-      $os.writeFile(path3, data, mode);
-    };
-    function mkdirSync(path3, options2) {
-      const mode = (() => {
-        if (options2 && typeof options2 === "object" && "mode" in options2) {
-          return options2.mode;
-        }
-        return 493;
-      })();
-      $os.mkdirAll(path3.toString(), mode);
-      return;
-    }
-    var path_exports = {};
-    __export2(path_exports, {
-      basename: () => basename,
-      delimiter: () => delimiter,
-      dirname: () => dirname,
-      extname: () => extname,
-      format: () => format,
-      isAbsolute: () => isAbsolute,
-      join: () => join,
-      normalize: () => normalize,
-      parse: () => parse3,
-      relative: () => relative,
-      resolve: () => resolve,
-      sep: () => sep,
-      win32: () => win32
-    });
-    function assertPath(path3) {
-      if (typeof path3 !== "string") {
-        throw new TypeError(
-          "Path must be a string. Received " + JSON.stringify(path3)
-        );
-      }
-    }
-    function normalizeStringPosix(path3, allowAboveRoot) {
-      var res = "";
-      var lastSegmentLength = 0;
-      var lastSlash = -1;
-      var dots = 0;
-      var code;
-      for (var i = 0; i <= path3.length; ++i) {
-        if (i < path3.length) code = path3.charCodeAt(i);
-        else if (code === 47) break;
-        else code = 47;
-        if (code === 47) {
-          if (lastSlash === i - 1 || dots === 1) {
-          } else if (lastSlash !== i - 1 && dots === 2) {
-            if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
-              if (res.length > 2) {
-                var lastSlashIndex = res.lastIndexOf("/");
-                if (lastSlashIndex !== res.length - 1) {
-                  if (lastSlashIndex === -1) {
-                    res = "";
-                    lastSegmentLength = 0;
-                  } else {
-                    res = res.slice(0, lastSlashIndex);
-                    lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
-                  }
-                  lastSlash = i;
-                  dots = 0;
-                  continue;
-                }
-              } else if (res.length === 2 || res.length === 1) {
-                res = "";
-                lastSegmentLength = 0;
-                lastSlash = i;
-                dots = 0;
-                continue;
-              }
-            }
-            if (allowAboveRoot) {
-              if (res.length > 0) res += "/..";
-              else res = "..";
-              lastSegmentLength = 2;
-            }
-          } else {
-            if (res.length > 0) res += "/" + path3.slice(lastSlash + 1, i);
-            else res = path3.slice(lastSlash + 1, i);
-            lastSegmentLength = i - lastSlash - 1;
-          }
-          lastSlash = i;
-          dots = 0;
-        } else if (code === 46 && dots !== -1) {
-          ++dots;
-        } else {
-          dots = -1;
-        }
-      }
-      return res;
-    }
-    function _format(sep2, pathObject) {
-      var dir = pathObject.dir || pathObject.root;
-      var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
-      if (!dir) {
-        return base;
-      }
-      if (dir === pathObject.root) {
-        return dir + base;
-      }
-      return dir + sep2 + base;
-    }
-    function resolve(...args) {
-      var resolvedPath = "";
-      var resolvedAbsolute = false;
-      var cwd2;
-      for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-        var path3;
-        if (i >= 0) path3 = arguments[i];
-        else {
-          if (cwd2 === void 0) cwd2 = $os.getwd();
-          path3 = cwd2;
-        }
-        assertPath(path3);
-        if (path3.length === 0) {
-          continue;
-        }
-        resolvedPath = path3 + "/" + resolvedPath;
-        resolvedAbsolute = path3.charCodeAt(0) === 47;
-      }
-      resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
-      if (resolvedAbsolute) {
-        if (resolvedPath.length > 0) return "/" + resolvedPath;
-        else return "/";
-      } else if (resolvedPath.length > 0) {
-        return resolvedPath;
-      } else {
-        return ".";
-      }
-    }
-    function normalize(path3) {
-      assertPath(path3);
-      if (path3.length === 0) return ".";
-      var isAbsolute2 = path3.charCodeAt(0) === 47;
-      var trailingSeparator = path3.charCodeAt(path3.length - 1) === 47;
-      path3 = normalizeStringPosix(path3, !isAbsolute2);
-      if (path3.length === 0 && !isAbsolute2) path3 = ".";
-      if (path3.length > 0 && trailingSeparator) path3 += "/";
-      if (isAbsolute2) return "/" + path3;
-      return path3;
-    }
-    function isAbsolute(path3) {
-      assertPath(path3);
-      return path3.length > 0 && path3.charCodeAt(0) === 47;
-    }
-    function join(...paths) {
-      if (arguments.length === 0) return ".";
-      var joined;
-      for (var i = 0; i < arguments.length; ++i) {
-        var arg = arguments[i];
-        assertPath(arg);
-        if (arg.length > 0) {
-          if (joined === void 0) joined = arg;
-          else joined += "/" + arg;
-        }
-      }
-      if (joined === void 0) return ".";
-      return normalize(joined);
-    }
-    function relative(from, to) {
-      assertPath(from);
-      assertPath(to);
-      if (from === to) return "";
-      from = resolve(from);
-      to = resolve(to);
-      if (from === to) return "";
-      var fromStart = 1;
-      for (; fromStart < from.length; ++fromStart) {
-        if (from.charCodeAt(fromStart) !== 47) break;
-      }
-      var fromEnd = from.length;
-      var fromLen = fromEnd - fromStart;
-      var toStart = 1;
-      for (; toStart < to.length; ++toStart) {
-        if (to.charCodeAt(toStart) !== 47) break;
-      }
-      var toEnd = to.length;
-      var toLen = toEnd - toStart;
-      var length = fromLen < toLen ? fromLen : toLen;
-      var lastCommonSep = -1;
-      var i = 0;
-      for (; i <= length; ++i) {
-        if (i === length) {
-          if (toLen > length) {
-            if (to.charCodeAt(toStart + i) === 47) {
-              return to.slice(toStart + i + 1);
-            } else if (i === 0) {
-              return to.slice(toStart + i);
-            }
-          } else if (fromLen > length) {
-            if (from.charCodeAt(fromStart + i) === 47) {
-              lastCommonSep = i;
-            } else if (i === 0) {
-              lastCommonSep = 0;
-            }
-          }
-          break;
-        }
-        var fromCode = from.charCodeAt(fromStart + i);
-        var toCode = to.charCodeAt(toStart + i);
-        if (fromCode !== toCode) break;
-        else if (fromCode === 47) lastCommonSep = i;
-      }
-      var out = "";
-      for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
-        if (i === fromEnd || from.charCodeAt(i) === 47) {
-          if (out.length === 0) out += "..";
-          else out += "/..";
-        }
-      }
-      if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
-      else {
-        toStart += lastCommonSep;
-        if (to.charCodeAt(toStart) === 47) ++toStart;
-        return to.slice(toStart);
-      }
-    }
-    function dirname(path3) {
-      assertPath(path3);
-      if (path3.length === 0) return ".";
-      var code = path3.charCodeAt(0);
-      var hasRoot = code === 47;
-      var end = -1;
-      var matchedSlash = true;
-      for (var i = path3.length - 1; i >= 1; --i) {
-        code = path3.charCodeAt(i);
-        if (code === 47) {
-          if (!matchedSlash) {
-            end = i;
-            break;
-          }
-        } else {
-          matchedSlash = false;
-        }
-      }
-      if (end === -1) return hasRoot ? "/" : ".";
-      if (hasRoot && end === 1) return "//";
-      return path3.slice(0, end);
-    }
-    function basename(path3, ext) {
-      if (ext !== void 0 && typeof ext !== "string")
-        throw new TypeError('"ext" argument must be a string');
-      assertPath(path3);
-      var start = 0;
-      var end = -1;
-      var matchedSlash = true;
-      var i;
-      if (ext !== void 0 && ext.length > 0 && ext.length <= path3.length) {
-        if (ext.length === path3.length && ext === path3) return "";
-        var extIdx = ext.length - 1;
-        var firstNonSlashEnd = -1;
-        for (i = path3.length - 1; i >= 0; --i) {
-          var code = path3.charCodeAt(i);
-          if (code === 47) {
-            if (!matchedSlash) {
-              start = i + 1;
-              break;
-            }
-          } else {
-            if (firstNonSlashEnd === -1) {
-              matchedSlash = false;
-              firstNonSlashEnd = i + 1;
-            }
-            if (extIdx >= 0) {
-              if (code === ext.charCodeAt(extIdx)) {
-                if (--extIdx === -1) {
-                  end = i;
-                }
-              } else {
-                extIdx = -1;
-                end = firstNonSlashEnd;
-              }
-            }
-          }
-        }
-        if (start === end) end = firstNonSlashEnd;
-        else if (end === -1) end = path3.length;
-        return path3.slice(start, end);
-      } else {
-        for (i = path3.length - 1; i >= 0; --i) {
-          if (path3.charCodeAt(i) === 47) {
-            if (!matchedSlash) {
-              start = i + 1;
-              break;
-            }
-          } else if (end === -1) {
-            matchedSlash = false;
-            end = i + 1;
-          }
-        }
-        if (end === -1) return "";
-        return path3.slice(start, end);
-      }
-    }
-    function extname(path3) {
-      assertPath(path3);
-      var startDot = -1;
-      var startPart = 0;
-      var end = -1;
-      var matchedSlash = true;
-      var preDotState = 0;
-      for (var i = path3.length - 1; i >= 0; --i) {
-        var code = path3.charCodeAt(i);
-        if (code === 47) {
-          if (!matchedSlash) {
-            startPart = i + 1;
-            break;
-          }
-          continue;
-        }
-        if (end === -1) {
-          matchedSlash = false;
-          end = i + 1;
-        }
-        if (code === 46) {
-          if (startDot === -1) startDot = i;
-          else if (preDotState !== 1) preDotState = 1;
-        } else if (startDot !== -1) {
-          preDotState = -1;
-        }
-      }
-      if (startDot === -1 || end === -1 || // We saw a non-dot character immediately before the dot
-      preDotState === 0 || // The (right-most) trimmed path component is exactly '..'
-      preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-        return "";
-      }
-      return path3.slice(startDot, end);
-    }
-    function format(pathObject) {
-      if (pathObject === null || typeof pathObject !== "object") {
-        throw new TypeError(
-          'The "pathObject" argument must be of type Object. Received type ' + typeof pathObject
-        );
-      }
-      return _format("/", pathObject);
-    }
-    function parse3(path3) {
-      assertPath(path3);
-      var ret = { root: "", dir: "", base: "", ext: "", name: "" };
-      if (path3.length === 0) return ret;
-      var code = path3.charCodeAt(0);
-      var isAbsolute2 = code === 47;
-      var start;
-      if (isAbsolute2) {
-        ret.root = "/";
-        start = 1;
-      } else {
-        start = 0;
-      }
-      var startDot = -1;
-      var startPart = 0;
-      var end = -1;
-      var matchedSlash = true;
-      var i = path3.length - 1;
-      var preDotState = 0;
-      for (; i >= start; --i) {
-        code = path3.charCodeAt(i);
-        if (code === 47) {
-          if (!matchedSlash) {
-            startPart = i + 1;
-            break;
-          }
-          continue;
-        }
-        if (end === -1) {
-          matchedSlash = false;
-          end = i + 1;
-        }
-        if (code === 46) {
-          if (startDot === -1) startDot = i;
-          else if (preDotState !== 1) preDotState = 1;
-        } else if (startDot !== -1) {
-          preDotState = -1;
-        }
-      }
-      if (startDot === -1 || end === -1 || // We saw a non-dot character immediately before the dot
-      preDotState === 0 || // The (right-most) trimmed path component is exactly '..'
-      preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-        if (end !== -1) {
-          if (startPart === 0 && isAbsolute2)
-            ret.base = ret.name = path3.slice(1, end);
-          else ret.base = ret.name = path3.slice(startPart, end);
-        }
-      } else {
-        if (startPart === 0 && isAbsolute2) {
-          ret.name = path3.slice(1, startDot);
-          ret.base = path3.slice(1, end);
-        } else {
-          ret.name = path3.slice(startPart, startDot);
-          ret.base = path3.slice(startPart, end);
-        }
-        ret.ext = path3.slice(startDot, end);
-      }
-      if (startPart > 0) ret.dir = path3.slice(0, startPart - 1);
-      else if (isAbsolute2) ret.dir = "/";
-      return ret;
-    }
-    var sep = "/";
-    var delimiter = ":";
-    var win32 = null;
-    var child_process_exports = {};
-    __export2(child_process_exports, {
-      execSync: () => execSync
-    });
-    var execSync = (cmdArr) => {
-      const [cmd, ...args] = cmdArr;
-      const _cmd = $os.cmd(cmd, ...args);
-      const charOut = _cmd.output();
-      const output = String.fromCharCode(...charOut);
-      return output;
-    };
-    var process_exports = {};
-    __export2(process_exports, {
-      cwd: () => cwd,
-      env: () => env
-    });
-    var cwd = () => $os.getwd();
-    var { env } = process;
-  }
-});
-
 // node_modules/requires-port/index.js
 var require_requires_port = __commonJS({
   "node_modules/requires-port/index.js"(exports2, module2) {
@@ -912,7 +402,7 @@ var require_url_parse = __commonJS({
       if (!(this instanceof Url)) {
         return new Url(address, location, parser2);
       }
-      var relative, extracted, parse3, instruction, index, key, instructions = rules.slice(), type = typeof location, url = this, i = 0;
+      var relative, extracted, parse5, instruction, index, key, instructions = rules.slice(), type = typeof location, url = this, i = 0;
       if ("object" !== type && "string" !== type) {
         parser2 = location;
         location = null;
@@ -933,12 +423,12 @@ var require_url_parse = __commonJS({
           address = instruction(address, url);
           continue;
         }
-        parse3 = instruction[0];
+        parse5 = instruction[0];
         key = instruction[1];
-        if (parse3 !== parse3) {
+        if (parse5 !== parse5) {
           url[key] = address;
-        } else if ("string" === typeof parse3) {
-          index = parse3 === "@" ? address.lastIndexOf(parse3) : address.indexOf(parse3);
+        } else if ("string" === typeof parse5) {
+          index = parse5 === "@" ? address.lastIndexOf(parse5) : address.indexOf(parse5);
           if (~index) {
             if ("number" === typeof instruction[2]) {
               url[key] = address.slice(0, index);
@@ -948,7 +438,7 @@ var require_url_parse = __commonJS({
               address = address.slice(0, index);
             }
           }
-        } else if (index = parse3.exec(address)) {
+        } else if (index = parse5.exec(address)) {
           url[key] = index[1];
           address = address.slice(0, index.index);
         }
@@ -1086,9 +576,9 @@ var require_url_parse = __commonJS({
   }
 });
 
-// ../pocketbase-ejs/node_modules/pocketbase-node/dist/index.js
-var require_dist4 = __commonJS({
-  "../pocketbase-ejs/node_modules/pocketbase-node/dist/index.js"(exports2, module2) {
+// node_modules/pocketbase-node/dist/index.js
+var require_dist3 = __commonJS({
+  "node_modules/pocketbase-node/dist/index.js"(exports2, module2) {
     "use strict";
     init_cjs_shims();
     var __defProp2 = Object.defineProperty;
@@ -1131,6 +621,9 @@ var require_dist4 = __commonJS({
       return decodeURIComponent(escape(utf8String));
     }
     var readFileSync = (path3, options2) => {
+      if (typeof path3 !== "string") {
+        throw new Error("path must be a string");
+      }
       const res = $os.readFile(path3);
       if (typeof res === "string") {
         return res;
@@ -1138,26 +631,26 @@ var require_dist4 = __commonJS({
       const s = byteArrayToUtf8(res);
       return s;
     };
-    var existsSync = (path3, fileType = `file`) => {
+    var existsSync = (pathLike, fileType = "both") => {
       const isDir = (() => {
         try {
-          $os.readDir(path3);
+          $os.readDir(pathLike);
           return true;
         } catch {
           return false;
         }
       })();
-      const isFile = (() => {
+      const isFile2 = (() => {
         if (isDir) {
           return false;
         }
         try {
-          return $filesystem.fileFromPath(path3) !== null;
+          return $filesystem.fileFromPath(pathLike) !== null;
         } catch {
           return false;
         }
       })();
-      return fileType === "file" ? isFile : fileType === "dir" ? isDir : isFile || isDir;
+      return fileType === "file" ? isFile2 : fileType === "dir" ? isDir : isFile2 || isDir;
     };
     var writeFileSync = (path3, data, options2) => {
       if (typeof path3 !== "string") {
@@ -1167,7 +660,7 @@ var require_dist4 = __commonJS({
         throw new Error("data must be a string");
       }
       const mode = (() => {
-        if (typeof options2 === "object" && "mode" in options2) {
+        if (options2 && typeof options2 === "object" && "mode" in options2) {
           return options2.mode;
         }
         return 420;
@@ -1176,7 +669,7 @@ var require_dist4 = __commonJS({
     };
     function mkdirSync(path3, options2) {
       const mode = (() => {
-        if (typeof options2 === "object" && "mode" in options2) {
+        if (options2 && typeof options2 === "object" && "mode" in options2) {
           return options2.mode;
         }
         return 493;
@@ -1194,7 +687,7 @@ var require_dist4 = __commonJS({
       isAbsolute: () => isAbsolute,
       join: () => join,
       normalize: () => normalize,
-      parse: () => parse3,
+      parse: () => parse5,
       relative: () => relative,
       resolve: () => resolve,
       sep: () => sep,
@@ -1508,7 +1001,514 @@ var require_dist4 = __commonJS({
       }
       return _format("/", pathObject);
     }
-    function parse3(path3) {
+    function parse5(path3) {
+      assertPath(path3);
+      var ret = { root: "", dir: "", base: "", ext: "", name: "" };
+      if (path3.length === 0) return ret;
+      var code = path3.charCodeAt(0);
+      var isAbsolute2 = code === 47;
+      var start;
+      if (isAbsolute2) {
+        ret.root = "/";
+        start = 1;
+      } else {
+        start = 0;
+      }
+      var startDot = -1;
+      var startPart = 0;
+      var end = -1;
+      var matchedSlash = true;
+      var i = path3.length - 1;
+      var preDotState = 0;
+      for (; i >= start; --i) {
+        code = path3.charCodeAt(i);
+        if (code === 47) {
+          if (!matchedSlash) {
+            startPart = i + 1;
+            break;
+          }
+          continue;
+        }
+        if (end === -1) {
+          matchedSlash = false;
+          end = i + 1;
+        }
+        if (code === 46) {
+          if (startDot === -1) startDot = i;
+          else if (preDotState !== 1) preDotState = 1;
+        } else if (startDot !== -1) {
+          preDotState = -1;
+        }
+      }
+      if (startDot === -1 || end === -1 || // We saw a non-dot character immediately before the dot
+      preDotState === 0 || // The (right-most) trimmed path component is exactly '..'
+      preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+        if (end !== -1) {
+          if (startPart === 0 && isAbsolute2)
+            ret.base = ret.name = path3.slice(1, end);
+          else ret.base = ret.name = path3.slice(startPart, end);
+        }
+      } else {
+        if (startPart === 0 && isAbsolute2) {
+          ret.name = path3.slice(1, startDot);
+          ret.base = path3.slice(1, end);
+        } else {
+          ret.name = path3.slice(startPart, startDot);
+          ret.base = path3.slice(startPart, end);
+        }
+        ret.ext = path3.slice(startDot, end);
+      }
+      if (startPart > 0) ret.dir = path3.slice(0, startPart - 1);
+      else if (isAbsolute2) ret.dir = "/";
+      return ret;
+    }
+    var sep = "/";
+    var delimiter = ":";
+    var win32 = null;
+    var child_process_exports = {};
+    __export2(child_process_exports, {
+      execSync: () => execSync
+    });
+    var execSync = (cmdArr) => {
+      const [cmd, ...args] = cmdArr;
+      const _cmd = $os.cmd(cmd, ...args);
+      const charOut = _cmd.output();
+      const output = String.fromCharCode(...charOut);
+      return output;
+    };
+    var process_exports = {};
+    __export2(process_exports, {
+      cwd: () => cwd,
+      env: () => env
+    });
+    var cwd = () => $os.getwd();
+    var { env } = process;
+  }
+});
+
+// ../pocketbase-ejs/node_modules/pocketbase-node/dist/index.js
+var require_dist4 = __commonJS({
+  "../pocketbase-ejs/node_modules/pocketbase-node/dist/index.js"(exports2, module2) {
+    "use strict";
+    init_cjs_shims();
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
+      for (var name in all)
+        __defProp2(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps2 = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS2 = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
+    var src_exports2 = {};
+    __export2(src_exports2, {
+      child_process: () => child_process_exports,
+      fs: () => fs_exports,
+      path: () => path_exports,
+      process: () => process_exports
+    });
+    module2.exports = __toCommonJS2(src_exports2);
+    var fs_exports = {};
+    __export2(fs_exports, {
+      existsSync: () => existsSync,
+      mkdirSync: () => mkdirSync,
+      readFileSync: () => readFileSync,
+      writeFileSync: () => writeFileSync
+    });
+    function byteArrayToUtf8(byteArray) {
+      let utf8String = "";
+      for (let i = 0; i < byteArray.length; i++) {
+        utf8String += String.fromCharCode(byteArray[i]);
+      }
+      return decodeURIComponent(escape(utf8String));
+    }
+    var readFileSync = (path3, options2) => {
+      const res = $os.readFile(path3);
+      if (typeof res === "string") {
+        return res;
+      }
+      const s = byteArrayToUtf8(res);
+      return s;
+    };
+    var existsSync = (path3, fileType = `file`) => {
+      const isDir = (() => {
+        try {
+          $os.readDir(path3);
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+      const isFile2 = (() => {
+        if (isDir) {
+          return false;
+        }
+        try {
+          return $filesystem.fileFromPath(path3) !== null;
+        } catch {
+          return false;
+        }
+      })();
+      return fileType === "file" ? isFile2 : fileType === "dir" ? isDir : isFile2 || isDir;
+    };
+    var writeFileSync = (path3, data, options2) => {
+      if (typeof path3 !== "string") {
+        throw new Error("path must be a string");
+      }
+      if (typeof data !== "string") {
+        throw new Error("data must be a string");
+      }
+      const mode = (() => {
+        if (typeof options2 === "object" && "mode" in options2) {
+          return options2.mode;
+        }
+        return 420;
+      })();
+      $os.writeFile(path3, data, mode);
+    };
+    function mkdirSync(path3, options2) {
+      const mode = (() => {
+        if (typeof options2 === "object" && "mode" in options2) {
+          return options2.mode;
+        }
+        return 493;
+      })();
+      $os.mkdirAll(path3.toString(), mode);
+      return;
+    }
+    var path_exports = {};
+    __export2(path_exports, {
+      basename: () => basename,
+      delimiter: () => delimiter,
+      dirname: () => dirname,
+      extname: () => extname,
+      format: () => format,
+      isAbsolute: () => isAbsolute,
+      join: () => join,
+      normalize: () => normalize,
+      parse: () => parse5,
+      relative: () => relative,
+      resolve: () => resolve,
+      sep: () => sep,
+      win32: () => win32
+    });
+    function assertPath(path3) {
+      if (typeof path3 !== "string") {
+        throw new TypeError(
+          "Path must be a string. Received " + JSON.stringify(path3)
+        );
+      }
+    }
+    function normalizeStringPosix(path3, allowAboveRoot) {
+      var res = "";
+      var lastSegmentLength = 0;
+      var lastSlash = -1;
+      var dots = 0;
+      var code;
+      for (var i = 0; i <= path3.length; ++i) {
+        if (i < path3.length) code = path3.charCodeAt(i);
+        else if (code === 47) break;
+        else code = 47;
+        if (code === 47) {
+          if (lastSlash === i - 1 || dots === 1) {
+          } else if (lastSlash !== i - 1 && dots === 2) {
+            if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
+              if (res.length > 2) {
+                var lastSlashIndex = res.lastIndexOf("/");
+                if (lastSlashIndex !== res.length - 1) {
+                  if (lastSlashIndex === -1) {
+                    res = "";
+                    lastSegmentLength = 0;
+                  } else {
+                    res = res.slice(0, lastSlashIndex);
+                    lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
+                  }
+                  lastSlash = i;
+                  dots = 0;
+                  continue;
+                }
+              } else if (res.length === 2 || res.length === 1) {
+                res = "";
+                lastSegmentLength = 0;
+                lastSlash = i;
+                dots = 0;
+                continue;
+              }
+            }
+            if (allowAboveRoot) {
+              if (res.length > 0) res += "/..";
+              else res = "..";
+              lastSegmentLength = 2;
+            }
+          } else {
+            if (res.length > 0) res += "/" + path3.slice(lastSlash + 1, i);
+            else res = path3.slice(lastSlash + 1, i);
+            lastSegmentLength = i - lastSlash - 1;
+          }
+          lastSlash = i;
+          dots = 0;
+        } else if (code === 46 && dots !== -1) {
+          ++dots;
+        } else {
+          dots = -1;
+        }
+      }
+      return res;
+    }
+    function _format(sep2, pathObject) {
+      var dir = pathObject.dir || pathObject.root;
+      var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
+      if (!dir) {
+        return base;
+      }
+      if (dir === pathObject.root) {
+        return dir + base;
+      }
+      return dir + sep2 + base;
+    }
+    function resolve(...args) {
+      var resolvedPath = "";
+      var resolvedAbsolute = false;
+      var cwd2;
+      for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+        var path3;
+        if (i >= 0) path3 = arguments[i];
+        else {
+          if (cwd2 === void 0) cwd2 = $os.getwd();
+          path3 = cwd2;
+        }
+        assertPath(path3);
+        if (path3.length === 0) {
+          continue;
+        }
+        resolvedPath = path3 + "/" + resolvedPath;
+        resolvedAbsolute = path3.charCodeAt(0) === 47;
+      }
+      resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
+      if (resolvedAbsolute) {
+        if (resolvedPath.length > 0) return "/" + resolvedPath;
+        else return "/";
+      } else if (resolvedPath.length > 0) {
+        return resolvedPath;
+      } else {
+        return ".";
+      }
+    }
+    function normalize(path3) {
+      assertPath(path3);
+      if (path3.length === 0) return ".";
+      var isAbsolute2 = path3.charCodeAt(0) === 47;
+      var trailingSeparator = path3.charCodeAt(path3.length - 1) === 47;
+      path3 = normalizeStringPosix(path3, !isAbsolute2);
+      if (path3.length === 0 && !isAbsolute2) path3 = ".";
+      if (path3.length > 0 && trailingSeparator) path3 += "/";
+      if (isAbsolute2) return "/" + path3;
+      return path3;
+    }
+    function isAbsolute(path3) {
+      assertPath(path3);
+      return path3.length > 0 && path3.charCodeAt(0) === 47;
+    }
+    function join(...paths) {
+      if (arguments.length === 0) return ".";
+      var joined;
+      for (var i = 0; i < arguments.length; ++i) {
+        var arg = arguments[i];
+        assertPath(arg);
+        if (arg.length > 0) {
+          if (joined === void 0) joined = arg;
+          else joined += "/" + arg;
+        }
+      }
+      if (joined === void 0) return ".";
+      return normalize(joined);
+    }
+    function relative(from, to) {
+      assertPath(from);
+      assertPath(to);
+      if (from === to) return "";
+      from = resolve(from);
+      to = resolve(to);
+      if (from === to) return "";
+      var fromStart = 1;
+      for (; fromStart < from.length; ++fromStart) {
+        if (from.charCodeAt(fromStart) !== 47) break;
+      }
+      var fromEnd = from.length;
+      var fromLen = fromEnd - fromStart;
+      var toStart = 1;
+      for (; toStart < to.length; ++toStart) {
+        if (to.charCodeAt(toStart) !== 47) break;
+      }
+      var toEnd = to.length;
+      var toLen = toEnd - toStart;
+      var length = fromLen < toLen ? fromLen : toLen;
+      var lastCommonSep = -1;
+      var i = 0;
+      for (; i <= length; ++i) {
+        if (i === length) {
+          if (toLen > length) {
+            if (to.charCodeAt(toStart + i) === 47) {
+              return to.slice(toStart + i + 1);
+            } else if (i === 0) {
+              return to.slice(toStart + i);
+            }
+          } else if (fromLen > length) {
+            if (from.charCodeAt(fromStart + i) === 47) {
+              lastCommonSep = i;
+            } else if (i === 0) {
+              lastCommonSep = 0;
+            }
+          }
+          break;
+        }
+        var fromCode = from.charCodeAt(fromStart + i);
+        var toCode = to.charCodeAt(toStart + i);
+        if (fromCode !== toCode) break;
+        else if (fromCode === 47) lastCommonSep = i;
+      }
+      var out = "";
+      for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
+        if (i === fromEnd || from.charCodeAt(i) === 47) {
+          if (out.length === 0) out += "..";
+          else out += "/..";
+        }
+      }
+      if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
+      else {
+        toStart += lastCommonSep;
+        if (to.charCodeAt(toStart) === 47) ++toStart;
+        return to.slice(toStart);
+      }
+    }
+    function dirname(path3) {
+      assertPath(path3);
+      if (path3.length === 0) return ".";
+      var code = path3.charCodeAt(0);
+      var hasRoot = code === 47;
+      var end = -1;
+      var matchedSlash = true;
+      for (var i = path3.length - 1; i >= 1; --i) {
+        code = path3.charCodeAt(i);
+        if (code === 47) {
+          if (!matchedSlash) {
+            end = i;
+            break;
+          }
+        } else {
+          matchedSlash = false;
+        }
+      }
+      if (end === -1) return hasRoot ? "/" : ".";
+      if (hasRoot && end === 1) return "//";
+      return path3.slice(0, end);
+    }
+    function basename(path3, ext) {
+      if (ext !== void 0 && typeof ext !== "string")
+        throw new TypeError('"ext" argument must be a string');
+      assertPath(path3);
+      var start = 0;
+      var end = -1;
+      var matchedSlash = true;
+      var i;
+      if (ext !== void 0 && ext.length > 0 && ext.length <= path3.length) {
+        if (ext.length === path3.length && ext === path3) return "";
+        var extIdx = ext.length - 1;
+        var firstNonSlashEnd = -1;
+        for (i = path3.length - 1; i >= 0; --i) {
+          var code = path3.charCodeAt(i);
+          if (code === 47) {
+            if (!matchedSlash) {
+              start = i + 1;
+              break;
+            }
+          } else {
+            if (firstNonSlashEnd === -1) {
+              matchedSlash = false;
+              firstNonSlashEnd = i + 1;
+            }
+            if (extIdx >= 0) {
+              if (code === ext.charCodeAt(extIdx)) {
+                if (--extIdx === -1) {
+                  end = i;
+                }
+              } else {
+                extIdx = -1;
+                end = firstNonSlashEnd;
+              }
+            }
+          }
+        }
+        if (start === end) end = firstNonSlashEnd;
+        else if (end === -1) end = path3.length;
+        return path3.slice(start, end);
+      } else {
+        for (i = path3.length - 1; i >= 0; --i) {
+          if (path3.charCodeAt(i) === 47) {
+            if (!matchedSlash) {
+              start = i + 1;
+              break;
+            }
+          } else if (end === -1) {
+            matchedSlash = false;
+            end = i + 1;
+          }
+        }
+        if (end === -1) return "";
+        return path3.slice(start, end);
+      }
+    }
+    function extname(path3) {
+      assertPath(path3);
+      var startDot = -1;
+      var startPart = 0;
+      var end = -1;
+      var matchedSlash = true;
+      var preDotState = 0;
+      for (var i = path3.length - 1; i >= 0; --i) {
+        var code = path3.charCodeAt(i);
+        if (code === 47) {
+          if (!matchedSlash) {
+            startPart = i + 1;
+            break;
+          }
+          continue;
+        }
+        if (end === -1) {
+          matchedSlash = false;
+          end = i + 1;
+        }
+        if (code === 46) {
+          if (startDot === -1) startDot = i;
+          else if (preDotState !== 1) preDotState = 1;
+        } else if (startDot !== -1) {
+          preDotState = -1;
+        }
+      }
+      if (startDot === -1 || end === -1 || // We saw a non-dot character immediately before the dot
+      preDotState === 0 || // The (right-most) trimmed path component is exactly '..'
+      preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+        return "";
+      }
+      return path3.slice(startDot, end);
+    }
+    function format(pathObject) {
+      if (pathObject === null || typeof pathObject !== "object") {
+        throw new TypeError(
+          'The "pathObject" argument must be of type Object. Received type ' + typeof pathObject
+        );
+      }
+      return _format("/", pathObject);
+    }
+    function parse5(path3) {
       assertPath(path3);
       var ret = { root: "", dir: "", base: "", ext: "", name: "" };
       if (path3.length === 0) return ret;
@@ -1739,7 +1739,7 @@ var require_package = __commonJS({
         "engine",
         "ejs"
       ],
-      version: "3.1.10005",
+      version: "3.1.10006",
       author: "Matthew Eernisse <mde@fleegix.org> (http://fleegix.org)",
       license: "Apache-2.0",
       main: "./lib/ejs.js",
@@ -1890,7 +1890,7 @@ var require_ejs = __commonJS({
     function fileLoader(filePath) {
       return exports2.fileLoader(filePath);
     }
-    function includeFile(path4, options2) {
+    exports2.includeFile = function includeFile(path4, options2) {
       var opts = utils.shallowCopy(utils.createNullProtoObjWherePossible(), options2);
       opts.filename = getIncludePath(path4, opts);
       if (typeof options2.includer === "function") {
@@ -1905,7 +1905,7 @@ var require_ejs = __commonJS({
         }
       }
       return handleCache(opts);
-    }
+    };
     function extractLineAndCol(stack) {
       const match = stack.match(/anonymous \(<eval>:(\d+):(\d+)/);
       if (match) {
@@ -2010,6 +2010,7 @@ var require_ejs = __commonJS({
       this.truncate = false;
       this.currentLine = 1;
       this.source = "";
+      options2.includeFile = opts.includeFile || exports2.includeFile;
       options2.prepend = opts.prepend || "";
       options2.client = opts.client || false;
       options2.escapeFunction = opts.escape || opts.escapeFunction || utils.escapeXML;
@@ -2156,7 +2157,7 @@ var require_ejs = __commonJS({
             if (includeData) {
               d = utils.shallowCopy(d, includeData);
             }
-            return includeFile(path4, opts)(d);
+            return opts.includeFile(path4, opts)(d);
           };
           return fn.apply(
             opts.context,
@@ -5185,7 +5186,7 @@ var require_front_matter = __commonJS({
       options2.allowUnsafe = Boolean(options2.allowUnsafe);
       var lines = string.split(/(\r?\n)/);
       if (lines[0] && /= yaml =|---/.test(lines[0])) {
-        return parse3(string, options2.allowUnsafe);
+        return parse5(string, options2.allowUnsafe);
       } else {
         return {
           attributes: {},
@@ -5207,7 +5208,7 @@ var require_front_matter = __commonJS({
       }
       return line;
     }
-    function parse3(string, allowUnsafe) {
+    function parse5(string, allowUnsafe) {
       var match = regex.exec(string);
       if (!match) {
         return {
@@ -5235,6 +5236,166 @@ var require_front_matter = __commonJS({
   }
 });
 
+// node_modules/cookie/dist/index.js
+var require_dist5 = __commonJS({
+  "node_modules/cookie/dist/index.js"(exports2) {
+    "use strict";
+    init_cjs_shims();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.parse = parse5;
+    exports2.serialize = serialize2;
+    var cookieNameRegExp = /^[\u0021-\u003A\u003C\u003E-\u007E]+$/;
+    var cookieValueRegExp = /^[\u0021-\u003A\u003C-\u007E]*$/;
+    var domainValueRegExp = /^([.]?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)([.][a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/i;
+    var pathValueRegExp = /^[\u0020-\u003A\u003D-\u007E]*$/;
+    var __toString = Object.prototype.toString;
+    var NullObject = /* @__PURE__ */ (() => {
+      const C = function() {
+      };
+      C.prototype = /* @__PURE__ */ Object.create(null);
+      return C;
+    })();
+    function parse5(str, options2) {
+      const obj = new NullObject();
+      const len = str.length;
+      if (len < 2)
+        return obj;
+      const dec = options2?.decode || decode3;
+      let index = 0;
+      do {
+        const eqIdx = str.indexOf("=", index);
+        if (eqIdx === -1)
+          break;
+        const colonIdx = str.indexOf(";", index);
+        const endIdx = colonIdx === -1 ? len : colonIdx;
+        if (eqIdx > endIdx) {
+          index = str.lastIndexOf(";", eqIdx - 1) + 1;
+          continue;
+        }
+        const keyStartIdx = startIndex(str, index, eqIdx);
+        const keyEndIdx = endIndex(str, eqIdx, keyStartIdx);
+        const key = str.slice(keyStartIdx, keyEndIdx);
+        if (obj[key] === void 0) {
+          let valStartIdx = startIndex(str, eqIdx + 1, endIdx);
+          let valEndIdx = endIndex(str, endIdx, valStartIdx);
+          const value = dec(str.slice(valStartIdx, valEndIdx));
+          obj[key] = value;
+        }
+        index = endIdx + 1;
+      } while (index < len);
+      return obj;
+    }
+    function startIndex(str, index, max) {
+      do {
+        const code = str.charCodeAt(index);
+        if (code !== 32 && code !== 9)
+          return index;
+      } while (++index < max);
+      return max;
+    }
+    function endIndex(str, index, min) {
+      while (index > min) {
+        const code = str.charCodeAt(--index);
+        if (code !== 32 && code !== 9)
+          return index + 1;
+      }
+      return min;
+    }
+    function serialize2(name, val, options2) {
+      const enc = options2?.encode || encodeURIComponent;
+      if (!cookieNameRegExp.test(name)) {
+        throw new TypeError(`argument name is invalid: ${name}`);
+      }
+      const value = enc(val);
+      if (!cookieValueRegExp.test(value)) {
+        throw new TypeError(`argument val is invalid: ${val}`);
+      }
+      let str = name + "=" + value;
+      if (!options2)
+        return str;
+      if (options2.maxAge !== void 0) {
+        if (!Number.isInteger(options2.maxAge)) {
+          throw new TypeError(`option maxAge is invalid: ${options2.maxAge}`);
+        }
+        str += "; Max-Age=" + options2.maxAge;
+      }
+      if (options2.domain) {
+        if (!domainValueRegExp.test(options2.domain)) {
+          throw new TypeError(`option domain is invalid: ${options2.domain}`);
+        }
+        str += "; Domain=" + options2.domain;
+      }
+      if (options2.path) {
+        if (!pathValueRegExp.test(options2.path)) {
+          throw new TypeError(`option path is invalid: ${options2.path}`);
+        }
+        str += "; Path=" + options2.path;
+      }
+      if (options2.expires) {
+        if (!isDate2(options2.expires) || !Number.isFinite(options2.expires.valueOf())) {
+          throw new TypeError(`option expires is invalid: ${options2.expires}`);
+        }
+        str += "; Expires=" + options2.expires.toUTCString();
+      }
+      if (options2.httpOnly) {
+        str += "; HttpOnly";
+      }
+      if (options2.secure) {
+        str += "; Secure";
+      }
+      if (options2.partitioned) {
+        str += "; Partitioned";
+      }
+      if (options2.priority) {
+        const priority = typeof options2.priority === "string" ? options2.priority.toLowerCase() : void 0;
+        switch (priority) {
+          case "low":
+            str += "; Priority=Low";
+            break;
+          case "medium":
+            str += "; Priority=Medium";
+            break;
+          case "high":
+            str += "; Priority=High";
+            break;
+          default:
+            throw new TypeError(`option priority is invalid: ${options2.priority}`);
+        }
+      }
+      if (options2.sameSite) {
+        const sameSite = typeof options2.sameSite === "string" ? options2.sameSite.toLowerCase() : options2.sameSite;
+        switch (sameSite) {
+          case true:
+          case "strict":
+            str += "; SameSite=Strict";
+            break;
+          case "lax":
+            str += "; SameSite=Lax";
+            break;
+          case "none":
+            str += "; SameSite=None";
+            break;
+          default:
+            throw new TypeError(`option sameSite is invalid: ${options2.sameSite}`);
+        }
+      }
+      return str;
+    }
+    function decode3(str) {
+      if (str.indexOf("%") === -1)
+        return str;
+      try {
+        return decodeURIComponent(str);
+      } catch (e) {
+        return str;
+      }
+    }
+    function isDate2(val) {
+      return __toString.call(val) === "[object Date]";
+    }
+  }
+});
+
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
@@ -5244,6 +5405,7 @@ __export(src_exports, {
   findRecordsByFilter: () => findRecordsByFilter,
   globalApi: () => globalApi,
   log: () => log3,
+  moduleExists: () => moduleExists,
   stringify: () => import_pocketbase_stringify5.stringify,
   v23MiddlewareWrapper: () => v23MiddlewareWrapper
 });
@@ -5261,21 +5423,17 @@ var v23Provider = () => ({
       e.next();
       if (!require.isOverridden) {
         const oldRequire = require;
+        const { globalApi: globalApi2, moduleExists: moduleExists2 } = oldRequire(
+          `${__hooks}/pocketpages.pb`
+        );
         require = (path3) => {
-          try {
-            if (path3 === "pocketpages") {
-              return require(`${__hooks}/pocketpages.pb`).globalApi;
-            }
-            return oldRequire(path3);
-          } catch (e2) {
-            const errorMsg = `${e2}`;
-            if (errorMsg.includes("Invalid module")) {
-              throw new Error(
-                `${path3} is not a valid module. Did you mean resolve()?`
-              );
-            }
-            throw e2;
+          if (path3 === "pocketpages") {
+            return globalApi2;
           }
+          if (!moduleExists2(path3)) {
+            throw new Error(`Module ${path3} not found. Did you mean resolve()?`);
+          }
+          return oldRequire(path3);
         };
         require.isOverridden = true;
       }
@@ -5284,21 +5442,17 @@ var v23Provider = () => ({
     routerUse((e) => {
       if (!require.isOverridden) {
         const oldRequire = require;
+        const { globalApi: globalApi2, moduleExists: moduleExists2 } = oldRequire(
+          `${__hooks}/pocketpages.pb`
+        );
         require = (path3) => {
-          try {
-            if (path3 === "pocketpages") {
-              return require(`${__hooks}/pocketpages.pb`).globalApi;
-            }
-            return oldRequire(path3);
-          } catch (e2) {
-            const errorMsg = `${e2}`;
-            if (errorMsg.includes("Invalid module")) {
-              throw new Error(
-                `${path3} is not a valid module. Did you mean resolve()?`
-              );
-            }
-            throw e2;
+          if (path3 === "pocketpages") {
+            return globalApi2;
           }
+          if (!moduleExists2(path3)) {
+            throw new Error(`Module ${path3} not found. Did you mean resolve()?`);
+          }
+          return oldRequire(path3);
         };
         require.isOverridden = true;
       }
@@ -5308,7 +5462,6 @@ var v23Provider = () => ({
 });
 
 // src/lib/pages/index.ts
-var is22 = `refreshSettings` in $app;
 var getPagesProvider = () => v23Provider();
 
 // src/lib/types.ts
@@ -5450,6 +5603,1909 @@ function shuffle(collection) {
   return sampleSize(collection, size(collection));
 }
 
+// ../pocketbase-js-sdk/dist/pocketbase.es.mjs
+init_cjs_shims();
+var ClientResponseError = class _ClientResponseError extends Error {
+  constructor(errData) {
+    super("ClientResponseError");
+    this.url = "";
+    this.status = 0;
+    this.response = {};
+    this.isAbort = false;
+    this.originalError = null;
+    Object.setPrototypeOf(this, _ClientResponseError.prototype);
+    if (errData !== null && typeof errData === "object") {
+      this.url = typeof errData.url === "string" ? errData.url : "";
+      this.status = typeof errData.status === "number" ? errData.status : 0;
+      this.isAbort = !!errData.isAbort;
+      this.originalError = errData.originalError;
+      if (errData.response !== null && typeof errData.response === "object") {
+        this.response = errData.response;
+      } else if (errData.data !== null && typeof errData.data === "object") {
+        this.response = errData.data;
+      } else {
+        this.response = {};
+      }
+    }
+    if (!this.originalError && !(errData instanceof _ClientResponseError)) {
+      this.originalError = errData;
+    }
+    if (typeof DOMException !== "undefined" && errData instanceof DOMException) {
+      this.isAbort = true;
+    }
+    this.name = "ClientResponseError " + this.status;
+    this.message = this.response?.message;
+    if (!this.message) {
+      if (this.originalError?.cause?.message?.includes("ECONNREFUSED ::1")) {
+        this.message = "Failed to connect to the PocketBase server. Try changing the SDK URL from localhost to 127.0.0.1 (https://github.com/pocketbase/js-sdk/issues/21).";
+      } else {
+        this.message = "Something went wrong while processing your request.";
+      }
+    }
+  }
+  /**
+   * Alias for `this.response` for backward compatibility.
+   */
+  get data() {
+    return this.response;
+  }
+  /**
+   * Make a POJO's copy of the current error class instance.
+   * @see https://github.com/vuex-orm/vuex-orm/issues/255
+   */
+  toJSON() {
+    return { ...this };
+  }
+};
+var fieldContentRegExp = /^[\u0009\u0020-\u007e\u0080-\u00ff]+$/;
+function cookieParse(str, options2) {
+  const result = {};
+  if (typeof str !== "string") {
+    return result;
+  }
+  const opt = Object.assign({}, options2 || {});
+  const decode3 = opt.decode || defaultDecode;
+  let index = 0;
+  while (index < str.length) {
+    const eqIdx = str.indexOf("=", index);
+    if (eqIdx === -1) {
+      break;
+    }
+    let endIdx = str.indexOf(";", index);
+    if (endIdx === -1) {
+      endIdx = str.length;
+    } else if (endIdx < eqIdx) {
+      index = str.lastIndexOf(";", eqIdx - 1) + 1;
+      continue;
+    }
+    const key = str.slice(index, eqIdx).trim();
+    if (void 0 === result[key]) {
+      let val = str.slice(eqIdx + 1, endIdx).trim();
+      if (val.charCodeAt(0) === 34) {
+        val = val.slice(1, -1);
+      }
+      try {
+        result[key] = decode3(val);
+      } catch (_) {
+        result[key] = val;
+      }
+    }
+    index = endIdx + 1;
+  }
+  return result;
+}
+function cookieSerialize(name, val, options2) {
+  const opt = Object.assign({}, options2 || {});
+  const encode2 = opt.encode || defaultEncode;
+  if (!fieldContentRegExp.test(name)) {
+    throw new TypeError("argument name is invalid");
+  }
+  const value = encode2(val);
+  if (value && !fieldContentRegExp.test(value)) {
+    throw new TypeError("argument val is invalid");
+  }
+  let result = name + "=" + value;
+  if (opt.maxAge != null) {
+    const maxAge = opt.maxAge - 0;
+    if (isNaN(maxAge) || !isFinite(maxAge)) {
+      throw new TypeError("option maxAge is invalid");
+    }
+    result += "; Max-Age=" + Math.floor(maxAge);
+  }
+  if (opt.domain) {
+    if (!fieldContentRegExp.test(opt.domain)) {
+      throw new TypeError("option domain is invalid");
+    }
+    result += "; Domain=" + opt.domain;
+  }
+  if (opt.path) {
+    if (!fieldContentRegExp.test(opt.path)) {
+      throw new TypeError("option path is invalid");
+    }
+    result += "; Path=" + opt.path;
+  }
+  if (opt.expires) {
+    if (!isDate(opt.expires) || isNaN(opt.expires.valueOf())) {
+      throw new TypeError("option expires is invalid");
+    }
+    result += "; Expires=" + opt.expires.toUTCString();
+  }
+  if (opt.httpOnly) {
+    result += "; HttpOnly";
+  }
+  if (opt.secure) {
+    result += "; Secure";
+  }
+  if (opt.priority) {
+    const priority = typeof opt.priority === "string" ? opt.priority.toLowerCase() : opt.priority;
+    switch (priority) {
+      case "low":
+        result += "; Priority=Low";
+        break;
+      case "medium":
+        result += "; Priority=Medium";
+        break;
+      case "high":
+        result += "; Priority=High";
+        break;
+      default:
+        throw new TypeError("option priority is invalid");
+    }
+  }
+  if (opt.sameSite) {
+    const sameSite = typeof opt.sameSite === "string" ? opt.sameSite.toLowerCase() : opt.sameSite;
+    switch (sameSite) {
+      case true:
+        result += "; SameSite=Strict";
+        break;
+      case "lax":
+        result += "; SameSite=Lax";
+        break;
+      case "strict":
+        result += "; SameSite=Strict";
+        break;
+      case "none":
+        result += "; SameSite=None";
+        break;
+      default:
+        throw new TypeError("option sameSite is invalid");
+    }
+  }
+  return result;
+}
+function defaultDecode(val) {
+  return val.indexOf("%") !== -1 ? decodeURIComponent(val) : val;
+}
+function defaultEncode(val) {
+  return encodeURIComponent(val);
+}
+function isDate(val) {
+  return Object.prototype.toString.call(val) === "[object Date]" || val instanceof Date;
+}
+var atobPolyfill;
+if (typeof atob === "function") {
+  atobPolyfill = atob;
+} else {
+  atobPolyfill = (input) => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    let str = String(input).replace(/=+$/, "");
+    if (str.length % 4 == 1) {
+      throw new Error("'atob' failed: The string to be decoded is not correctly encoded.");
+    }
+    for (
+      var bc = 0, bs, buffer, idx = 0, output = "";
+      // get next character
+      buffer = str.charAt(idx++);
+      // character found in table? initialize bit storage and add its ascii value;
+      ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer, // and if not first of each 4 characters,
+      // convert the first 8 bits to one ascii character
+      bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+    ) {
+      buffer = chars.indexOf(buffer);
+    }
+    return output;
+  };
+}
+function getTokenPayload(token2) {
+  if (token2) {
+    try {
+      const encodedPayload = decodeURIComponent(atobPolyfill(token2.split(".")[1]).split("").map(function(c) {
+        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(""));
+      return JSON.parse(encodedPayload) || {};
+    } catch (e) {
+    }
+  }
+  return {};
+}
+function isTokenExpired(token2, expirationThreshold = 0) {
+  let payload = getTokenPayload(token2);
+  if (Object.keys(payload).length > 0 && (!payload.exp || payload.exp - expirationThreshold > Date.now() / 1e3)) {
+    return false;
+  }
+  return true;
+}
+var defaultCookieKey = "pb_auth";
+var BaseAuthStore = class {
+  constructor() {
+    this.baseToken = "";
+    this.baseModel = null;
+    this._onChangeCallbacks = [];
+  }
+  /**
+   * Retrieves the stored token (if any).
+   */
+  get token() {
+    return this.baseToken;
+  }
+  /**
+   * Retrieves the stored model data (if any).
+   */
+  get record() {
+    return this.baseModel;
+  }
+  /**
+   * @deprecated use `record` instead.
+   */
+  get model() {
+    return this.baseModel;
+  }
+  /**
+   * Loosely checks if the store has valid token (aka. existing and unexpired exp claim).
+   */
+  get isValid() {
+    return !isTokenExpired(this.token);
+  }
+  /**
+   * Loosely checks whether the currently loaded store state is for superuser.
+   *
+   * Alternatively you can also compare directly `pb.authStore.record?.collectionName`.
+   */
+  get isSuperuser() {
+    let payload = getTokenPayload(this.token);
+    return payload.type == "auth" && (this.record?.collectionName == "_superusers" || // fallback in case the record field is not populated and assuming
+    // that the collection crc32 checksum id wasn't manually changed
+    !this.record?.collectionName && payload.collectionId == "pbc_3142635823");
+  }
+  /**
+   * @deprecated use `isSuperuser` instead or simply check the record.collectionName property.
+   */
+  get isAdmin() {
+    console.warn("Please replace pb.authStore.isAdmin with pb.authStore.isSuperuser OR simply check the value of pb.authStore.record?.collectionName");
+    return this.isSuperuser;
+  }
+  /**
+   * @deprecated use `!isSuperuser` instead or simply check the record.collectionName property.
+   */
+  get isAuthRecord() {
+    console.warn("Please replace pb.authStore.isAuthRecord with !pb.authStore.isSuperuser OR simply check the value of pb.authStore.record?.collectionName");
+    return getTokenPayload(this.token).type == "auth" && !this.isSuperuser;
+  }
+  /**
+   * Saves the provided new token and model data in the auth store.
+   */
+  save(token2, record) {
+    this.baseToken = token2 || "";
+    this.baseModel = record || null;
+    this.triggerChange();
+  }
+  /**
+   * Removes the stored token and model data form the auth store.
+   */
+  clear() {
+    this.baseToken = "";
+    this.baseModel = null;
+    this.triggerChange();
+  }
+  /**
+   * Parses the provided cookie string and updates the store state
+   * with the cookie's token and model data.
+   *
+   * NB! This function doesn't validate the token or its data.
+   * Usually this isn't a concern if you are interacting only with the
+   * PocketBase API because it has the proper server-side security checks in place,
+   * but if you are using the store `isValid` state for permission controls
+   * in a node server (eg. SSR), then it is recommended to call `authRefresh()`
+   * after loading the cookie to ensure an up-to-date token and model state.
+   * For example:
+   *
+   * ```js
+   * pb.authStore.loadFromCookie("cookie string...");
+   *
+   * try {
+   *     // get an up-to-date auth store state by veryfing and refreshing the loaded auth model (if any)
+   *     pb.authStore.isValid && await pb.collection('users').authRefresh();
+   * } catch (_) {
+   *     // clear the auth store on failed refresh
+   *     pb.authStore.clear();
+   * }
+   * ```
+   */
+  loadFromCookie(cookie2, key = defaultCookieKey) {
+    const rawData = cookieParse(cookie2 || "")[key] || "";
+    let data = {};
+    try {
+      data = JSON.parse(rawData);
+      if (typeof data === null || typeof data !== "object" || Array.isArray(data)) {
+        data = {};
+      }
+    } catch (_) {
+    }
+    this.save(data.token || "", data.record || data.model || null);
+  }
+  /**
+   * Exports the current store state as cookie string.
+   *
+   * By default the following optional attributes are added:
+   * - Secure
+   * - HttpOnly
+   * - SameSite=Strict
+   * - Path=/
+   * - Expires={the token expiration date}
+   *
+   * NB! If the generated cookie exceeds 4096 bytes, this method will
+   * strip the model data to the bare minimum to try to fit within the
+   * recommended size in https://www.rfc-editor.org/rfc/rfc6265#section-6.1.
+   */
+  exportToCookie(options2, key = defaultCookieKey) {
+    const defaultOptions = {
+      secure: true,
+      sameSite: true,
+      httpOnly: true,
+      path: "/"
+    };
+    const payload = getTokenPayload(this.token);
+    if (payload?.exp) {
+      defaultOptions.expires = new Date(payload.exp * 1e3);
+    } else {
+      defaultOptions.expires = /* @__PURE__ */ new Date("1970-01-01");
+    }
+    options2 = Object.assign({}, defaultOptions, options2);
+    const rawData = {
+      token: this.token,
+      record: this.record ? JSON.parse(JSON.stringify(this.record)) : null
+    };
+    let result = cookieSerialize(key, JSON.stringify(rawData), options2);
+    const resultLength = typeof Blob !== "undefined" ? new Blob([result]).size : result.length;
+    if (rawData.record && resultLength > 4096) {
+      rawData.record = { id: rawData.record?.id, email: rawData.record?.email };
+      const extraProps = ["collectionId", "collectionName", "verified"];
+      for (const prop in this.record) {
+        if (extraProps.includes(prop)) {
+          rawData.record[prop] = this.record[prop];
+        }
+      }
+      result = cookieSerialize(key, JSON.stringify(rawData), options2);
+    }
+    return result;
+  }
+  /**
+   * Register a callback function that will be called on store change.
+   *
+   * You can set the `fireImmediately` argument to true in order to invoke
+   * the provided callback right after registration.
+   *
+   * Returns a removal function that you could call to "unsubscribe" from the changes.
+   */
+  onChange(callback, fireImmediately = false) {
+    this._onChangeCallbacks.push(callback);
+    if (fireImmediately) {
+      callback(this.token, this.record);
+    }
+    return () => {
+      for (let i = this._onChangeCallbacks.length - 1; i >= 0; i--) {
+        if (this._onChangeCallbacks[i] == callback) {
+          delete this._onChangeCallbacks[i];
+          this._onChangeCallbacks.splice(i, 1);
+          return;
+        }
+      }
+    };
+  }
+  triggerChange() {
+    for (const callback of this._onChangeCallbacks) {
+      callback && callback(this.token, this.record);
+    }
+  }
+};
+var LocalAuthStore = class extends BaseAuthStore {
+  constructor(storageKey = "pocketbase_auth") {
+    super();
+    this.storageFallback = {};
+    this.storageKey = storageKey;
+    this._bindStorageEvent();
+  }
+  /**
+   * @inheritdoc
+   */
+  get token() {
+    const data = this._storageGet(this.storageKey) || {};
+    return data.token || "";
+  }
+  /**
+   * @inheritdoc
+   */
+  get record() {
+    const data = this._storageGet(this.storageKey) || {};
+    return data.record || data.model || null;
+  }
+  /**
+   * @deprecated use `record` instead.
+   */
+  get model() {
+    return this.record;
+  }
+  /**
+   * @inheritdoc
+   */
+  save(token2, record) {
+    this._storageSet(this.storageKey, {
+      token: token2,
+      record
+    });
+    super.save(token2, record);
+  }
+  /**
+   * @inheritdoc
+   */
+  clear() {
+    this._storageRemove(this.storageKey);
+    super.clear();
+  }
+  // ---------------------------------------------------------------
+  // Internal helpers:
+  // ---------------------------------------------------------------
+  /**
+   * Retrieves `key` from the browser's local storage
+   * (or runtime/memory if local storage is undefined).
+   */
+  _storageGet(key) {
+    if (typeof window !== "undefined" && window?.localStorage) {
+      const rawValue = window.localStorage.getItem(key) || "";
+      try {
+        return JSON.parse(rawValue);
+      } catch (e) {
+        return rawValue;
+      }
+    }
+    return this.storageFallback[key];
+  }
+  /**
+   * Stores a new data in the browser's local storage
+   * (or runtime/memory if local storage is undefined).
+   */
+  _storageSet(key, value) {
+    if (typeof window !== "undefined" && window?.localStorage) {
+      let normalizedVal = value;
+      if (typeof value !== "string") {
+        normalizedVal = JSON.stringify(value);
+      }
+      window.localStorage.setItem(key, normalizedVal);
+    } else {
+      this.storageFallback[key] = value;
+    }
+  }
+  /**
+   * Removes `key` from the browser's local storage and the runtime/memory.
+   */
+  _storageRemove(key) {
+    if (typeof window !== "undefined" && window?.localStorage) {
+      window.localStorage?.removeItem(key);
+    }
+    delete this.storageFallback[key];
+  }
+  /**
+   * Updates the current store state on localStorage change.
+   */
+  _bindStorageEvent() {
+    if (typeof window === "undefined" || !window?.localStorage || !window.addEventListener) {
+      return;
+    }
+    window.addEventListener("storage", (e) => {
+      if (e.key != this.storageKey) {
+        return;
+      }
+      const data = this._storageGet(this.storageKey) || {};
+      super.save(data.token || "", data.record || data.model || null);
+    });
+  }
+};
+var BaseService = class {
+  constructor(client) {
+    this.client = client;
+  }
+};
+var SettingsService = class extends BaseService {
+  /**
+   * Fetch all available app settings.
+   *
+   * @throws {ClientResponseError}
+   */
+  getAll(options2) {
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    return this.client.send("/api/settings", options2);
+  }
+  /**
+   * Bulk updates app settings.
+   *
+   * @throws {ClientResponseError}
+   */
+  update(bodyParams, options2) {
+    options2 = Object.assign({
+      method: "PATCH",
+      body: bodyParams
+    }, options2);
+    return this.client.send("/api/settings", options2);
+  }
+  /**
+   * Performs a S3 filesystem connection test.
+   *
+   * The currently supported `filesystem` are "storage" and "backups".
+   *
+   * @throws {ClientResponseError}
+   */
+  testS3(filesystem = "storage", options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: {
+        filesystem
+      }
+    }, options2);
+    this.client.send("/api/settings/test/s3", options2);
+    return true;
+  }
+  /**
+   * Sends a test email.
+   *
+   * The possible `emailTemplate` values are:
+   * - verification
+   * - password-reset
+   * - email-change
+   *
+   * @throws {ClientResponseError}
+   */
+  testEmail(collectionIdOrName, toEmail, emailTemplate, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: {
+        email: toEmail,
+        template: emailTemplate,
+        collection: collectionIdOrName
+      }
+    }, options2);
+    this.client.send("/api/settings/test/email", options2);
+    return true;
+  }
+  /**
+   * Generates a new Apple OAuth2 client secret.
+   *
+   * @throws {ClientResponseError}
+   */
+  generateAppleClientSecret(clientId, teamId, keyId, privateKey, duration, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: {
+        clientId,
+        teamId,
+        keyId,
+        privateKey,
+        duration
+      }
+    }, options2);
+    return this.client.send("/api/settings/apple/generate-client-secret", options2);
+  }
+};
+var CrudService = class extends BaseService {
+  /**
+   * Response data decoder.
+   */
+  decode(data) {
+    return data;
+  }
+  getFullList(batchOrqueryParams, options2) {
+    if (typeof batchOrqueryParams == "number") {
+      return this._getFullList(batchOrqueryParams, options2);
+    }
+    options2 = Object.assign({}, batchOrqueryParams, options2);
+    let batch = 500;
+    if (options2.batch) {
+      batch = options2.batch;
+      delete options2.batch;
+    }
+    return this._getFullList(batch, options2);
+  }
+  /**
+   * Returns paginated items list.
+   *
+   * You can use the generic T to supply a wrapper type of the crud model.
+   *
+   * @throws {ClientResponseError}
+   */
+  getList(page = 1, perPage = 30, options2) {
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    options2.query = Object.assign({
+      page,
+      perPage
+    }, options2.query);
+    const responseData = this.client.send(this.baseCrudPath, options2);
+    responseData.items = responseData.items?.map((item) => {
+      return this.decode(item);
+    }) || [];
+    return responseData;
+  }
+  /**
+   * Returns the first found item by the specified filter.
+   *
+   * Internally it calls `getList(1, 1, { filter, skipTotal })` and
+   * returns the first found item.
+   *
+   * You can use the generic T to supply a wrapper type of the crud model.
+   *
+   * For consistency with `getOne`, this method will throw a 404
+   * ClientResponseError if no item was found.
+   *
+   * @throws {ClientResponseError}
+   */
+  getFirstListItem(filter, options2) {
+    options2 = Object.assign({
+      requestKey: "one_by_filter_" + this.baseCrudPath + "_" + filter
+    }, options2);
+    options2.query = Object.assign({
+      filter,
+      skipTotal: 1
+    }, options2.query);
+    const result = this.getList(1, 1, options2);
+    if (!result?.items?.length) {
+      throw new ClientResponseError({
+        status: 404,
+        response: {
+          code: 404,
+          message: "The requested resource wasn't found.",
+          data: {}
+        }
+      });
+    }
+    return result.items[0];
+  }
+  /**
+   * Returns single item by its id.
+   *
+   * You can use the generic T to supply a wrapper type of the crud model.
+   *
+   * If `id` is empty it will throw a 404 error.
+   *
+   * @throws {ClientResponseError}
+   */
+  getOne(id, options2) {
+    if (!id) {
+      throw new ClientResponseError({
+        url: this.client.buildURL(this.baseCrudPath + "/"),
+        status: 404,
+        response: {
+          code: 404,
+          message: "Missing required record id.",
+          data: {}
+        }
+      });
+    }
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    const responseData = this.client.send(this.baseCrudPath + "/" + encodeURIComponent(id), options2);
+    return this.decode(responseData);
+  }
+  /**
+   * Creates a new item.
+   *
+   * You can use the generic T to supply a wrapper type of the crud model.
+   *
+   * @throws {ClientResponseError}
+   */
+  create(bodyParams, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: bodyParams
+    }, options2);
+    const responseData = this.client.send(this.baseCrudPath, options2);
+    return this.decode(responseData);
+  }
+  /**
+   * Updates an existing item by its id.
+   *
+   * You can use the generic T to supply a wrapper type of the crud model.
+   *
+   * @throws {ClientResponseError}
+   */
+  update(id, bodyParams, options2) {
+    options2 = Object.assign({
+      method: "PATCH",
+      body: bodyParams
+    }, options2);
+    const responseData = this.client.send(this.baseCrudPath + "/" + encodeURIComponent(id), options2);
+    return this.decode(responseData);
+  }
+  /**
+   * Deletes an existing item by its id.
+   *
+   * @throws {ClientResponseError}
+   */
+  delete(id, options2) {
+    options2 = Object.assign({
+      method: "DELETE"
+    }, options2);
+    const responseData = this.client.send(this.baseCrudPath + "/" + encodeURIComponent(id), options2);
+    return responseData;
+  }
+  /**
+   * Returns a promise with all list items batch fetched at once.
+   */
+  _getFullList(batchSize = 500, options2) {
+    options2 = options2 || {};
+    options2.query = Object.assign({
+      skipTotal: 1
+    }, options2.query);
+    let result = [];
+    let request = (page) => {
+      const list2 = this.getList(page, batchSize || 500, options2);
+      const castedList = list2;
+      const items = castedList.items;
+      result = result.concat(items);
+      if (items.length == list2.perPage) {
+        return request(page + 1);
+      }
+      return result;
+    };
+    return request(1);
+  }
+};
+function normalizeLegacyOptionsArgs(legacyWarn, baseOptions, bodyOrOptions, query) {
+  const hasBodyOrOptions = typeof bodyOrOptions !== "undefined";
+  const hasQuery = typeof query !== "undefined";
+  if (!hasQuery && !hasBodyOrOptions) {
+    return baseOptions;
+  }
+  if (hasQuery) {
+    console.warn(legacyWarn);
+    baseOptions.body = Object.assign({}, baseOptions.body, bodyOrOptions);
+    baseOptions.query = Object.assign({}, baseOptions.query, query);
+    return baseOptions;
+  }
+  return Object.assign(baseOptions, bodyOrOptions);
+}
+var RecordService = class extends CrudService {
+  constructor(client, collectionIdOrName) {
+    super(client);
+    this.collectionIdOrName = collectionIdOrName;
+  }
+  /**
+   * @inheritdoc
+   */
+  get baseCrudPath() {
+    return this.baseCollectionPath + "/records";
+  }
+  /**
+   * Returns the current collection service base path.
+   */
+  get baseCollectionPath() {
+    return "/api/collections/" + encodeURIComponent(this.collectionIdOrName);
+  }
+  /**
+   * Returns whether the current service collection is superusers.
+   */
+  get isSuperusers() {
+    return this.collectionIdOrName == "_superusers" || this.collectionIdOrName == "_pbc_2773867675";
+  }
+  /**
+   * @inheritdoc
+   */
+  getFullList(batchOrOptions, options2) {
+    if (typeof batchOrOptions == "number") {
+      return super.getFullList(batchOrOptions, options2);
+    }
+    const params = Object.assign({}, batchOrOptions, options2);
+    return super.getFullList(params);
+  }
+  /**
+   * @inheritdoc
+   */
+  getList(page = 1, perPage = 30, options2) {
+    return super.getList(page, perPage, options2);
+  }
+  /**
+   * @inheritdoc
+   */
+  getFirstListItem(filter, options2) {
+    return super.getFirstListItem(filter, options2);
+  }
+  /**
+   * @inheritdoc
+   */
+  getOne(id, options2) {
+    return super.getOne(id, options2);
+  }
+  /**
+   * @inheritdoc
+   */
+  create(bodyParams, options2) {
+    return super.create(bodyParams, options2);
+  }
+  /**
+   * @inheritdoc
+   *
+   * If the current `client.authStore.record` matches with the updated id, then
+   * on success the `client.authStore.record` will be updated with the new response record fields.
+   */
+  update(id, bodyParams, options2) {
+    const item = super.update(id, bodyParams, options2);
+    if (
+      // is record auth
+      this.client.authStore.record?.id === item?.id && (this.client.authStore.record?.collectionId === this.collectionIdOrName || this.client.authStore.record?.collectionName === this.collectionIdOrName)
+    ) {
+      let authExpand = Object.assign({}, this.client.authStore.record.expand);
+      let authRecord = Object.assign({}, this.client.authStore.record, item);
+      if (authExpand) {
+        authRecord.expand = Object.assign(authExpand, item.expand);
+      }
+      this.client.authStore.save(this.client.authStore.token, authRecord);
+    }
+    return item;
+  }
+  /**
+   * @inheritdoc
+   *
+   * If the current `client.authStore.record` matches with the deleted id,
+   * then on success the `client.authStore` will be cleared.
+   */
+  delete(id, options2) {
+    const success = super.delete(id, options2);
+    if (success && // is record auth
+    this.client.authStore.record?.id === id && (this.client.authStore.record?.collectionId === this.collectionIdOrName || this.client.authStore.record?.collectionName === this.collectionIdOrName)) {
+      this.client.authStore.clear();
+    }
+    return success;
+  }
+  // ---------------------------------------------------------------
+  // Auth handlers
+  // ---------------------------------------------------------------
+  /**
+   * Prepare successful collection authorization response.
+   */
+  authResponse(responseData) {
+    const record = this.decode(responseData?.record || {});
+    this.client.authStore.save(responseData?.token, record);
+    return Object.assign({}, responseData, {
+      // normalize common fields
+      token: responseData?.token || "",
+      record
+    });
+  }
+  /**
+   * Returns all available collection auth methods.
+   *
+   * @throws {ClientResponseError}
+   */
+  listAuthMethods(options2) {
+    options2 = Object.assign({
+      method: "GET",
+      // @todo remove after deleting the pre v0.23 API response fields
+      fields: "mfa,otp,password,oauth2"
+    }, options2);
+    return this.client.send(this.baseCollectionPath + "/auth-methods", options2);
+  }
+  /**
+   * Authenticate a single auth collection record via its username/email and password.
+   *
+   * On success, this method also automatically updates
+   * the client's AuthStore data and returns:
+   * - the authentication token
+   * - the authenticated record model
+   *
+   * @throws {ClientResponseError}
+   */
+  authWithPassword(usernameOrEmail, password, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: {
+        identity: usernameOrEmail,
+        password
+      }
+    }, options2);
+    let authData = this.client.send(this.baseCollectionPath + "/auth-with-password", options2);
+    authData = this.authResponse(authData);
+    return authData;
+  }
+  authWithOAuth2Code(provider, code, codeVerifier, redirectURL, createData, bodyOrOptions, query) {
+    let options2 = {
+      method: "POST",
+      body: {
+        provider,
+        code,
+        codeVerifier,
+        redirectURL,
+        createData
+      }
+    };
+    options2 = normalizeLegacyOptionsArgs("This form of authWithOAuth2Code(provider, code, codeVerifier, redirectURL, createData?, body?, query?) is deprecated. Consider replacing it with authWithOAuth2Code(provider, code, codeVerifier, redirectURL, createData?, options?).", options2, bodyOrOptions, query);
+    const data = this.client.send(this.baseCollectionPath + "/auth-with-oauth2", options2);
+    return this.authResponse(data);
+  }
+  authRefresh(bodyOrOptions, query) {
+    let options2 = {
+      method: "POST"
+    };
+    options2 = normalizeLegacyOptionsArgs("This form of authRefresh(body?, query?) is deprecated. Consider replacing it with authRefresh(options?).", options2, bodyOrOptions, query);
+    const data = this.client.send(this.baseCollectionPath + "/auth-refresh", options2);
+    return this.authResponse(data);
+  }
+  requestPasswordReset(email, bodyOrOptions, query) {
+    let options2 = {
+      method: "POST",
+      body: {
+        email
+      }
+    };
+    options2 = normalizeLegacyOptionsArgs("This form of requestPasswordReset(email, body?, query?) is deprecated. Consider replacing it with requestPasswordReset(email, options?).", options2, bodyOrOptions, query);
+    this.client.send(this.baseCollectionPath + "/request-password-reset", options2);
+    return true;
+  }
+  confirmPasswordReset(passwordResetToken, password, passwordConfirm, bodyOrOptions, query) {
+    let options2 = {
+      method: "POST",
+      body: {
+        token: passwordResetToken,
+        password,
+        passwordConfirm
+      }
+    };
+    options2 = normalizeLegacyOptionsArgs("This form of confirmPasswordReset(token, password, passwordConfirm, body?, query?) is deprecated. Consider replacing it with confirmPasswordReset(token, password, passwordConfirm, options?).", options2, bodyOrOptions, query);
+    this.client.send(this.baseCollectionPath + "/confirm-password-reset", options2);
+    return true;
+  }
+  requestVerification(email, bodyOrOptions, query) {
+    let options2 = {
+      method: "POST",
+      body: {
+        email
+      }
+    };
+    options2 = normalizeLegacyOptionsArgs("This form of requestVerification(email, body?, query?) is deprecated. Consider replacing it with requestVerification(email, options?).", options2, bodyOrOptions, query);
+    this.client.send(this.baseCollectionPath + "/request-verification", options2);
+    return true;
+  }
+  confirmVerification(verificationToken, bodyOrOptions, query) {
+    let options2 = {
+      method: "POST",
+      body: {
+        token: verificationToken
+      }
+    };
+    options2 = normalizeLegacyOptionsArgs("This form of confirmVerification(token, body?, query?) is deprecated. Consider replacing it with confirmVerification(token, options?).", options2, bodyOrOptions, query);
+    this.client.send(this.baseCollectionPath + "/confirm-verification", options2);
+    const payload = getTokenPayload(verificationToken);
+    const model = this.client.authStore.record;
+    if (model && !model.verified && model.id === payload.id && model.collectionId === payload.collectionId) {
+      model.verified = true;
+      this.client.authStore.save(this.client.authStore.token, model);
+    }
+    return true;
+  }
+  requestEmailChange(newEmail, bodyOrOptions, query) {
+    let options2 = {
+      method: "POST",
+      body: {
+        newEmail
+      }
+    };
+    options2 = normalizeLegacyOptionsArgs("This form of requestEmailChange(newEmail, body?, query?) is deprecated. Consider replacing it with requestEmailChange(newEmail, options?).", options2, bodyOrOptions, query);
+    this.client.send(this.baseCollectionPath + "/request-email-change", options2);
+    return true;
+  }
+  confirmEmailChange(emailChangeToken, password, bodyOrOptions, query) {
+    let options2 = {
+      method: "POST",
+      body: {
+        token: emailChangeToken,
+        password
+      }
+    };
+    options2 = normalizeLegacyOptionsArgs("This form of confirmEmailChange(token, password, body?, query?) is deprecated. Consider replacing it with confirmEmailChange(token, password, options?).", options2, bodyOrOptions, query);
+    this.client.send(this.baseCollectionPath + "/confirm-email-change", options2);
+    const payload = getTokenPayload(emailChangeToken);
+    const model = this.client.authStore.record;
+    if (model && model.id === payload.id && model.collectionId === payload.collectionId) {
+      this.client.authStore.clear();
+    }
+    return true;
+  }
+  /**
+   * Sends auth record OTP to the provided email.
+   *
+   * @throws {ClientResponseError}
+   */
+  requestOTP(email, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: { email }
+    }, options2);
+    return this.client.send(this.baseCollectionPath + "/request-otp", options2);
+  }
+  /**
+   * Authenticate a single auth collection record via OTP.
+   *
+   * On success, this method also automatically updates
+   * the client's AuthStore data and returns:
+   * - the authentication token
+   * - the authenticated record model
+   *
+   * @throws {ClientResponseError}
+   */
+  authWithOTP(otpId, password, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: { otpId, password }
+    }, options2);
+    const data = this.client.send(this.baseCollectionPath + "/auth-with-otp", options2);
+    return this.authResponse(data);
+  }
+  /**
+   * Impersonate authenticates with the specified recordId and
+   * returns a new client with the received auth token in a memory store.
+   *
+   * If `duration` is 0 the generated auth token will fallback
+   * to the default collection auth token duration.
+   *
+   * This action currently requires superusers privileges.
+   *
+   * @throws {ClientResponseError}
+   */
+  impersonate(recordId, duration, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: { duration }
+    }, options2);
+    options2.headers = options2.headers || {};
+    if (!options2.headers.Authorization) {
+      options2.headers.Authorization = this.client.authStore.token;
+    }
+    const client = new Client(this.client.baseURL, new BaseAuthStore(), this.client.lang);
+    const authData = client.send(this.baseCollectionPath + "/impersonate/" + encodeURIComponent(recordId), options2);
+    client.authStore.save(authData?.token, this.decode(authData?.record || {}));
+    return client;
+  }
+};
+var CollectionService = class extends CrudService {
+  /**
+   * @inheritdoc
+   */
+  get baseCrudPath() {
+    return "/api/collections";
+  }
+  /**
+   * Imports the provided collections.
+   *
+   * If `deleteMissing` is `true`, all local collections and their fields,
+   * that are not present in the imported configuration, WILL BE DELETED
+   * (including their related records data)!
+   *
+   * @throws {ClientResponseError}
+   */
+  import(collections, deleteMissing = false, options2) {
+    options2 = Object.assign({
+      method: "PUT",
+      body: {
+        collections,
+        deleteMissing
+      }
+    }, options2);
+    this.client.send(this.baseCrudPath + "/import", options2);
+    return true;
+  }
+  /**
+   * Returns type indexed map with scaffolded collection models
+   * populated with their default field values.
+   *
+   * @throws {ClientResponseError}
+   */
+  getScaffolds(options2) {
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    return this.client.send(this.baseCrudPath + "/meta/scaffolds", options2);
+  }
+  /**
+   * Deletes all records associated with the specified collection.
+   *
+   * @throws {ClientResponseError}
+   */
+  truncate(collectionIdOrName, options2) {
+    options2 = Object.assign({
+      method: "DELETE"
+    }, options2);
+    this.client.send(this.baseCrudPath + "/" + encodeURIComponent(collectionIdOrName) + "/truncate", options2);
+    return true;
+  }
+};
+var LogService = class extends BaseService {
+  /**
+   * Returns paginated logs list.
+   *
+   * @throws {ClientResponseError}
+   */
+  getList(page = 1, perPage = 30, options2) {
+    options2 = Object.assign({ method: "GET" }, options2);
+    options2.query = Object.assign({
+      page,
+      perPage
+    }, options2.query);
+    return this.client.send("/api/logs", options2);
+  }
+  /**
+   * Returns a single log by its id.
+   *
+   * If `id` is empty it will throw a 404 error.
+   *
+   * @throws {ClientResponseError}
+   */
+  getOne(id, options2) {
+    if (!id) {
+      throw new ClientResponseError({
+        url: this.client.buildURL("/api/logs/"),
+        status: 404,
+        response: {
+          code: 404,
+          message: "Missing required log id.",
+          data: {}
+        }
+      });
+    }
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    return this.client.send("/api/logs/" + encodeURIComponent(id), options2);
+  }
+  /**
+   * Returns logs statistics.
+   *
+   * @throws {ClientResponseError}
+   */
+  getStats(options2) {
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    return this.client.send("/api/logs/stats", options2);
+  }
+};
+var HealthService = class extends BaseService {
+  /**
+   * Checks the health status of the api.
+   *
+   * @throws {ClientResponseError}
+   */
+  check(options2) {
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    return this.client.send("/api/health", options2);
+  }
+};
+var FileService = class extends BaseService {
+  /**
+   * @deprecated Please replace with `pb.files.getURL()`.
+   */
+  getUrl(record, filename, queryParams = {}) {
+    console.warn("Please replace pb.files.getUrl() with pb.files.getURL()");
+    return this.getURL(record, filename, queryParams);
+  }
+  /**
+   * Builds and returns an absolute record file url for the provided filename.
+   */
+  getURL(record, filename, queryParams = {}) {
+    if (!filename || !record?.id || !(record?.collectionId || record?.collectionName)) {
+      return "";
+    }
+    const parts = [];
+    parts.push("api");
+    parts.push("files");
+    parts.push(encodeURIComponent(record.collectionId || record.collectionName));
+    parts.push(encodeURIComponent(record.id));
+    parts.push(encodeURIComponent(filename));
+    let result = this.client.buildURL(parts.join("/"));
+    if (Object.keys(queryParams).length) {
+      if (queryParams.download === false) {
+        delete queryParams.download;
+      }
+      const params = new URLSearchParams(queryParams);
+      result += (result.includes("?") ? "&" : "?") + params;
+    }
+    return result;
+  }
+  /**
+   * Requests a new private file access token for the current auth model.
+   *
+   * @throws {ClientResponseError}
+   */
+  getToken(options2) {
+    options2 = Object.assign({
+      method: "POST"
+    }, options2);
+    const data = this.client.send("/api/files/token", options2);
+    return data?.token || "";
+  }
+};
+var BackupService = class extends BaseService {
+  /**
+   * Returns list with all available backup files.
+   *
+   * @throws {ClientResponseError}
+   */
+  getFullList(options2) {
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    return this.client.send("/api/backups", options2);
+  }
+  /**
+   * Initializes a new backup.
+   *
+   * @throws {ClientResponseError}
+   */
+  create(basename, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: {
+        name: basename
+      }
+    }, options2);
+    this.client.send("/api/backups", options2);
+    return true;
+  }
+  /**
+   * Uploads an existing backup file.
+   *
+   * Example:
+   *
+   * ```js
+   * await pb.backups.upload({
+   *     file: new Blob([...]),
+   * });
+   * ```
+   *
+   * @throws {ClientResponseError}
+   */
+  upload(bodyParams, options2) {
+    options2 = Object.assign({
+      method: "POST",
+      body: bodyParams
+    }, options2);
+    this.client.send("/api/backups/upload", options2);
+    return true;
+  }
+  /**
+   * Deletes a single backup file.
+   *
+   * @throws {ClientResponseError}
+   */
+  delete(key, options2) {
+    options2 = Object.assign({
+      method: "DELETE"
+    }, options2);
+    this.client.send(`/api/backups/${encodeURIComponent(key)}`, options2);
+    return true;
+  }
+  /**
+   * Initializes an app data restore from an existing backup.
+   *
+   * @throws {ClientResponseError}
+   */
+  restore(key, options2) {
+    options2 = Object.assign({
+      method: "POST"
+    }, options2);
+    this.client.send(`/api/backups/${encodeURIComponent(key)}/restore`, options2);
+    return true;
+  }
+  /**
+   * Builds a download url for a single existing backup using a
+   * superuser file token and the backup file key.
+   *
+   * The file token can be generated via `pb.files.getToken()`.
+   */
+  getDownloadURL(token2, key) {
+    return this.client.buildURL(`/api/backups/${encodeURIComponent(key)}?token=${encodeURIComponent(token2)}`);
+  }
+};
+var CronService = class extends BaseService {
+  /**
+   * Returns list with all registered cron jobs.
+   *
+   * @throws {ClientResponseError}
+   */
+  getFullList(options2) {
+    options2 = Object.assign({
+      method: "GET"
+    }, options2);
+    return this.client.send("/api/crons", options2);
+  }
+  /**
+   * Runs the specified cron job.
+   *
+   * @throws {ClientResponseError}
+   */
+  run(jobId, options2) {
+    options2 = Object.assign({
+      method: "POST"
+    }, options2);
+    this.client.send(`/api/crons/${encodeURIComponent(jobId)}`, options2);
+    return true;
+  }
+};
+function isFile(val) {
+  return typeof Blob !== "undefined" && val instanceof Blob || typeof File !== "undefined" && val instanceof File;
+}
+function isFormData(body) {
+  return body && // we are checking the constructor name because FormData
+  // is not available natively in some environments and the
+  // polyfill(s) may not be globally accessible
+  (body.constructor.name === "FormData" || // fallback to global FormData instance check
+  // note: this is needed because the constructor.name could be different in case of
+  //       custom global FormData implementation, eg. React Native on Android/iOS
+  typeof FormData !== "undefined" && body instanceof FormData);
+}
+function hasFileField(body) {
+  for (const key in body) {
+    const values2 = Array.isArray(body[key]) ? body[key] : [body[key]];
+    for (const v of values2) {
+      if (isFile(v)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+function convertToFormDataIfNeeded(body) {
+  if (typeof FormData === "undefined" || typeof body === "undefined" || typeof body !== "object" || body === null || isFormData(body) || !hasFileField(body)) {
+    return body;
+  }
+  const form = new FormData();
+  for (const key in body) {
+    const val = body[key];
+    if (typeof val === "object" && !hasFileField({ data: val })) {
+      let payload = {};
+      payload[key] = val;
+      form.append("@jsonPayload", JSON.stringify(payload));
+    } else {
+      const normalizedVal = Array.isArray(val) ? val : [val];
+      for (let v of normalizedVal) {
+        form.append(key, v);
+      }
+    }
+  }
+  return form;
+}
+function convertFormDataToObject(formData) {
+  let result = {};
+  formData.forEach((v, k) => {
+    if (k === "@jsonPayload" && typeof v == "string") {
+      try {
+        let parsed = JSON.parse(v);
+        Object.assign(result, parsed);
+      } catch (err) {
+        console.warn("@jsonPayload error:", err);
+      }
+    } else {
+      if (typeof result[k] !== "undefined") {
+        if (!Array.isArray(result[k])) {
+          result[k] = [result[k]];
+        }
+        result[k].push(inferFormDataValue(v));
+      } else {
+        result[k] = inferFormDataValue(v);
+      }
+    }
+  });
+  return result;
+}
+var inferNumberCharsRegex = /^[\-\.\d]+$/;
+function inferFormDataValue(value) {
+  if (typeof value != "string") {
+    return value;
+  }
+  if (value == "true") {
+    return true;
+  }
+  if (value == "false") {
+    return false;
+  }
+  if ((value[0] === "-" || value[0] >= "0" && value[0] <= "9") && inferNumberCharsRegex.test(value)) {
+    let num = +value;
+    if ("" + num === value) {
+      return num;
+    }
+  }
+  return value;
+}
+var knownSendOptionsKeys = [
+  "fetch",
+  "headers",
+  "body",
+  "query",
+  "params",
+  // ---,
+  "cache",
+  "credentials",
+  "headers",
+  "integrity",
+  "keepalive",
+  "method",
+  "mode",
+  "redirect",
+  "referrer",
+  "referrerPolicy",
+  "signal",
+  "window"
+];
+function normalizeUnknownQueryParams(options2) {
+  if (!options2) {
+    return;
+  }
+  options2.query = options2.query || {};
+  for (let key in options2) {
+    if (knownSendOptionsKeys.includes(key)) {
+      continue;
+    }
+    options2.query[key] = options2[key];
+    delete options2[key];
+  }
+}
+function serializeQueryParams(params) {
+  const result = [];
+  for (const key in params) {
+    if (params[key] === null || typeof params[key] === "undefined") {
+      continue;
+    }
+    const value = params[key];
+    const encodedKey = encodeURIComponent(key);
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        result.push(encodedKey + "=" + encodeURIComponent(v));
+      }
+    } else if (value instanceof Date) {
+      result.push(encodedKey + "=" + encodeURIComponent(value.toISOString()));
+    } else if (typeof value !== null && typeof value === "object") {
+      result.push(encodedKey + "=" + encodeURIComponent(JSON.stringify(value)));
+    } else {
+      result.push(encodedKey + "=" + encodeURIComponent(value));
+    }
+  }
+  return result.join("&");
+}
+var BatchService = class extends BaseService {
+  constructor() {
+    super(...arguments);
+    this.requests = [];
+    this.subs = {};
+  }
+  /**
+   * Starts constructing a batch request entry for the specified collection.
+   */
+  collection(collectionIdOrName) {
+    if (!this.subs[collectionIdOrName]) {
+      this.subs[collectionIdOrName] = new SubBatchService(this.requests, collectionIdOrName);
+    }
+    return this.subs[collectionIdOrName];
+  }
+  /**
+   * Sends the batch requests.
+   *
+   * @throws {ClientResponseError}
+   */
+  send(options2) {
+    const formData = new FormData();
+    const jsonData = [];
+    for (let i = 0; i < this.requests.length; i++) {
+      const req = this.requests[i];
+      jsonData.push({
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: req.json
+      });
+      if (req.files) {
+        for (let key in req.files) {
+          const files = req.files[key] || [];
+          for (let file of files) {
+            formData.append("requests." + i + "." + key, file);
+          }
+        }
+      }
+    }
+    formData.append("@jsonPayload", JSON.stringify({ requests: jsonData }));
+    options2 = Object.assign({
+      method: "POST",
+      body: formData
+    }, options2);
+    return this.client.send("/api/batch", options2);
+  }
+};
+var SubBatchService = class {
+  constructor(requests, collectionIdOrName) {
+    this.requests = [];
+    this.requests = requests;
+    this.collectionIdOrName = collectionIdOrName;
+  }
+  /**
+   * Registers a record upsert request into the current batch queue.
+   *
+   * The request will be executed as update if `bodyParams` have a valid existing record `id` value, otherwise - create.
+   */
+  upsert(bodyParams, options2) {
+    options2 = Object.assign({
+      body: bodyParams || {}
+    }, options2);
+    const request = {
+      method: "PUT",
+      url: "/api/collections/" + encodeURIComponent(this.collectionIdOrName) + "/records"
+    };
+    this.prepareRequest(request, options2);
+    this.requests.push(request);
+  }
+  /**
+   * Registers a record create request into the current batch queue.
+   */
+  create(bodyParams, options2) {
+    options2 = Object.assign({
+      body: bodyParams || {}
+    }, options2);
+    const request = {
+      method: "POST",
+      url: "/api/collections/" + encodeURIComponent(this.collectionIdOrName) + "/records"
+    };
+    this.prepareRequest(request, options2);
+    this.requests.push(request);
+  }
+  /**
+   * Registers a record update request into the current batch queue.
+   */
+  update(id, bodyParams, options2) {
+    options2 = Object.assign({
+      body: bodyParams || {}
+    }, options2);
+    const request = {
+      method: "PATCH",
+      url: "/api/collections/" + encodeURIComponent(this.collectionIdOrName) + "/records/" + encodeURIComponent(id)
+    };
+    this.prepareRequest(request, options2);
+    this.requests.push(request);
+  }
+  /**
+   * Registers a record delete request into the current batch queue.
+   */
+  delete(id, options2) {
+    options2 = Object.assign({}, options2);
+    const request = {
+      method: "DELETE",
+      url: "/api/collections/" + encodeURIComponent(this.collectionIdOrName) + "/records/" + encodeURIComponent(id)
+    };
+    this.prepareRequest(request, options2);
+    this.requests.push(request);
+  }
+  prepareRequest(request, options2) {
+    normalizeUnknownQueryParams(options2);
+    request.headers = options2.headers;
+    request.json = {};
+    request.files = {};
+    if (typeof options2.query !== "undefined") {
+      const query = serializeQueryParams(options2.query);
+      if (query) {
+        request.url += (request.url.includes("?") ? "&" : "?") + query;
+      }
+    }
+    let body = options2.body;
+    if (isFormData(body)) {
+      body = convertFormDataToObject(body);
+    }
+    for (const key in body) {
+      const val = body[key];
+      if (isFile(val)) {
+        request.files[key] = request.files[key] || [];
+        request.files[key].push(val);
+      } else if (Array.isArray(val)) {
+        const foundFiles = [];
+        const foundRegular = [];
+        for (const v of val) {
+          if (isFile(v)) {
+            foundFiles.push(v);
+          } else {
+            foundRegular.push(v);
+          }
+        }
+        if (foundFiles.length > 0 && foundFiles.length == val.length) {
+          request.files[key] = request.files[key] || [];
+          for (let file of foundFiles) {
+            request.files[key].push(file);
+          }
+        } else {
+          request.json[key] = foundRegular;
+          if (foundFiles.length > 0) {
+            let fileKey = key;
+            if (!key.startsWith("+") && !key.endsWith("+")) {
+              fileKey += "+";
+            }
+            request.files[fileKey] = request.files[fileKey] || [];
+            for (let file of foundFiles) {
+              request.files[fileKey].push(file);
+            }
+          }
+        }
+      } else {
+        request.json[key] = val;
+      }
+    }
+  }
+};
+var Client = class {
+  /**
+   * Legacy getter alias for baseURL.
+   * @deprecated Please replace with baseURL.
+   */
+  get baseUrl() {
+    return this.baseURL;
+  }
+  /**
+   * Legacy setter alias for baseURL.
+   * @deprecated Please replace with baseURL.
+   */
+  set baseUrl(v) {
+    this.baseURL = v;
+  }
+  constructor(baseURL = "/", authStore, lang = "en-US") {
+    this.recordServices = {};
+    this.baseURL = baseURL;
+    this.lang = lang;
+    if (authStore) {
+      this.authStore = authStore;
+    } else if (typeof window != "undefined" && !!window.Deno) {
+      this.authStore = new BaseAuthStore();
+    } else {
+      this.authStore = new LocalAuthStore();
+    }
+    this.collections = new CollectionService(this);
+    this.files = new FileService(this);
+    this.logs = new LogService(this);
+    this.settings = new SettingsService(this);
+    this.health = new HealthService(this);
+    this.backups = new BackupService(this);
+    this.crons = new CronService(this);
+  }
+  /**
+   * @deprecated
+   * With PocketBase v0.23.0 admins are converted to a regular auth
+   * collection named "_superusers", aka. you can use directly collection("_superusers").
+   */
+  get admins() {
+    return this.collection("_superusers");
+  }
+  /**
+   * Creates a new batch handler for sending multiple transactional
+   * create/update/upsert/delete collection requests in one network call.
+   *
+   * Example:
+   * ```js
+   * const batch = pb.createBatch();
+   *
+   * batch.collection("example1").create({ ... })
+   * batch.collection("example2").update("RECORD_ID", { ... })
+   * batch.collection("example3").delete("RECORD_ID")
+   * batch.collection("example4").upsert({ ... })
+   *
+   * await batch.send()
+   * ```
+   */
+  createBatch() {
+    return new BatchService(this);
+  }
+  /**
+   * Returns the RecordService associated to the specified collection.
+   */
+  collection(idOrName) {
+    if (!this.recordServices[idOrName]) {
+      this.recordServices[idOrName] = new RecordService(this, idOrName);
+    }
+    return this.recordServices[idOrName];
+  }
+  /**
+   * Constructs a filter expression with placeholders populated from a parameters object.
+   *
+   * Placeholder parameters are defined with the `{:paramName}` notation.
+   *
+   * The following parameter values are supported:
+   *
+   * - `string` (_single quotes are autoescaped_)
+   * - `number`
+   * - `boolean`
+   * - `Date` object (_stringified into the PocketBase datetime format_)
+   * - `null`
+   * - everything else is converted to a string using `JSON.stringify()`
+   *
+   * Example:
+   *
+   * ```js
+   * pb.collection("example").getFirstListItem(pb.filter(
+   *    'title ~ {:title} && created >= {:created}',
+   *    { title: "example", created: new Date()}
+   * ))
+   * ```
+   */
+  filter(raw, params) {
+    if (!params) {
+      return raw;
+    }
+    for (let key in params) {
+      let val = params[key];
+      switch (typeof val) {
+        case "boolean":
+        case "number":
+          val = "" + val;
+          break;
+        case "string":
+          val = "'" + val.replace(/'/g, "\\'") + "'";
+          break;
+        default:
+          if (val === null) {
+            val = "null";
+          } else if (val instanceof Date) {
+            val = "'" + val.toISOString().replace("T", " ") + "'";
+          } else {
+            val = "'" + JSON.stringify(val).replace(/'/g, "\\'") + "'";
+          }
+      }
+      raw = raw.replaceAll("{:" + key + "}", val);
+    }
+    return raw;
+  }
+  /**
+   * @deprecated Please use `pb.files.getURL()`.
+   */
+  getFileUrl(record, filename, queryParams = {}) {
+    console.warn("Please replace pb.getFileUrl() with pb.files.getURL()");
+    return this.files.getURL(record, filename, queryParams);
+  }
+  /**
+   * @deprecated Please use `pb.buildURL()`.
+   */
+  buildUrl(path3) {
+    console.warn("Please replace pb.buildUrl() with pb.buildURL()");
+    return this.buildURL(path3);
+  }
+  /**
+   * Builds a full client url by safely concatenating the provided path.
+   */
+  buildURL(path3) {
+    let url = this.baseURL;
+    if (typeof window !== "undefined" && !!window.location && !url.startsWith("https://") && !url.startsWith("http://")) {
+      url = window.location.origin?.endsWith("/") ? window.location.origin.substring(0, window.location.origin.length - 1) : window.location.origin || "";
+      if (!this.baseURL.startsWith("/")) {
+        url += window.location.pathname || "/";
+        url += url.endsWith("/") ? "" : "/";
+      }
+      url += this.baseURL;
+    }
+    if (path3) {
+      url += url.endsWith("/") ? "" : "/";
+      url += path3.startsWith("/") ? path3.substring(1) : path3;
+    }
+    return url;
+  }
+  /**
+   * Sends an api http request.
+   *
+   * @throws {ClientResponseError}
+   */
+  send(path3, options2) {
+    options2 = this.initSendOptions(path3, options2);
+    let url = this.buildURL(path3);
+    if (this.beforeSend) {
+      const result = Object.assign({}, this.beforeSend(url, options2));
+      if (typeof result.url !== "undefined" || typeof result.options !== "undefined") {
+        url = result.url || url;
+        options2 = result.options || options2;
+      } else if (Object.keys(result).length) {
+        options2 = result;
+        console?.warn && console.warn("Deprecated format of beforeSend return: please use `return { url, options }`, instead of `return options`.");
+      }
+    }
+    if (typeof options2.query !== "undefined") {
+      const query = serializeQueryParams(options2.query);
+      if (query) {
+        url += (url.includes("?") ? "&" : "?") + query;
+      }
+      delete options2.query;
+    }
+    if (this.getHeader(options2.headers, "Content-Type") == "application/json" && options2.body && typeof options2.body !== "string") {
+      options2.body = JSON.stringify(options2.body);
+    }
+    const fetchFunc = options2.fetch || $http.send;
+    try {
+      const args = {
+        url,
+        method: options2.method,
+        headers: options2.headers,
+        body: options2.body
+      };
+      const response = fetchFunc(args);
+      let data = {};
+      try {
+        data = response.json;
+      } catch (_) {
+      }
+      if (this.afterSend) {
+        data = this.afterSend(response, data, options2);
+      }
+      if (response.statusCode >= 400) {
+        throw new ClientResponseError({
+          url,
+          status: response.statusCode,
+          data
+        });
+      }
+      return data;
+    } catch (err) {
+      throw new ClientResponseError(err);
+    }
+  }
+  /**
+   * Shallow copy the provided object and takes care to initialize
+   * any options required to preserve the backward compatability.
+   *
+   * @param  {SendOptions} options
+   * @return {SendOptions}
+   */
+  // @ts-ignore
+  initSendOptions(path3, options2) {
+    options2 = Object.assign({ method: "GET" }, options2);
+    options2.body = convertToFormDataIfNeeded(options2.body);
+    normalizeUnknownQueryParams(options2);
+    if (this.getHeader(options2.headers, "Content-Type") === null && !isFormData(options2.body)) {
+      options2.headers = Object.assign({}, options2.headers, {
+        "Content-Type": "application/json"
+      });
+    }
+    if (this.getHeader(options2.headers, "Accept-Language") === null) {
+      options2.headers = Object.assign({}, options2.headers, {
+        "Accept-Language": this.lang
+      });
+    }
+    if (
+      // has valid token
+      this.authStore.token && // auth header is not explicitly set
+      this.getHeader(options2.headers, "Authorization") === null
+    ) {
+      options2.headers = Object.assign({}, options2.headers, {
+        Authorization: this.authStore.token
+      });
+    }
+    return options2;
+  }
+  /**
+   * Extracts the header with the provided name in case-insensitive manner.
+   * Returns `null` if no header matching the name is found.
+   */
+  getHeader(headers, name) {
+    headers = headers || {};
+    name = name.toLowerCase();
+    for (let key in headers) {
+      if (key.toLowerCase() == name) {
+        return headers[key];
+      }
+    }
+    return null;
+  }
+};
+
 // src/globalApi.ts
 var log = __toESM(require_dist2());
 var import_pocketbase_stringify2 = __toESM(require_dist());
@@ -5481,7 +7537,9 @@ var findRecordsByFilter = (collection, options2, dao = $app.dao()) => {
 };
 
 // src/globalApi.ts
+var import_url_parse = __toESM(require_url_parse());
 var globalApi = {
+  url: (path3) => (0, import_url_parse.default)(path3, true),
   stringify: import_pocketbase_stringify2.stringify,
   forEach,
   keys,
@@ -5491,6 +7549,68 @@ var globalApi = {
   env: (key) => process.env[key] ?? "",
   findRecordByFilter,
   findRecordsByFilter,
+  createUser: (email, password, options2) => {
+    if (!email.trim()) {
+      throw new Error("Email is required");
+    }
+    if (!password.trim()) {
+      throw new Error("Password is required");
+    }
+    const pb = globalApi.pb();
+    const user = pb.collection(options2?.collection ?? "users").create({
+      email,
+      password,
+      passwordConfirm: password
+    });
+    if (options2?.sendVerificationEmail === void 0 || options2.sendVerificationEmail) {
+      globalApi.requestVerification(email, options2);
+    }
+    return user;
+  },
+  createAnonymousUser: (options2) => {
+    const email = `anonymous-${$security.randomStringWithAlphabet(
+      10,
+      "123456789"
+    )}@example.com`;
+    return {
+      email,
+      ...globalApi.createPaswordlessUser(email, {
+        ...options2,
+        sendVerificationEmail: false
+      })
+    };
+  },
+  createPaswordlessUser: (email, options2) => {
+    const password = $security.randomStringWithAlphabet(40, "123456789");
+    return { password, user: globalApi.createUser(email, password, options2) };
+  },
+  requestVerification: (email, options2) => {
+    const pb = globalApi.pb();
+    pb.collection(options2?.collection ?? "users").requestVerification(email);
+  },
+  pb: /* @__PURE__ */ (() => {
+    let pb = null;
+    return () => {
+      if (pb) return pb;
+      const { config } = $app.store().get(`pocketpages`);
+      const { host } = config;
+      pb = new Client(host);
+      return pb;
+    };
+  })(),
+  confirmVerification: (token2, options2) => {
+    const pb = globalApi.pb();
+    pb.collection(options2?.collection ?? "users").confirmVerification(token2);
+  },
+  requestOTP: (email, options2) => {
+    const pb = globalApi.pb();
+    try {
+      const { user, password } = globalApi.createPaswordlessUser(email, options2);
+    } catch (e) {
+    }
+    const res = pb.collection(options2?.collection ?? "users").requestOTP(email);
+    return res;
+  },
   ...log
 };
 
@@ -5515,6 +7635,14 @@ var import_pocketbase_stringify3 = __toESM(require_dist());
 var pagesRoot = $filepath.join(__hooks, `pages`);
 var SAFE_HEADER = `if (typeof module === 'undefined') { module = { exports: {} } };`;
 var exts = ["", ".js", ".json"];
+var moduleExists = (path3) => {
+  for (let i = 0; i < exts.length; i++) {
+    if (import_pocketbase_node.fs.existsSync(path3 + exts[i])) {
+      return true;
+    }
+  }
+  return false;
+};
 var simulateRequire = (path3) => {
   for (let i = 0; i < exts.length; i++) {
     try {
@@ -5525,8 +7653,17 @@ var simulateRequire = (path3) => {
   }
   throw new Error(`No module '${path3}' found`);
 };
+var NotFoundError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "NotFoundError";
+  }
+};
 var mkResolve = (rootPath) => (path3, options2) => {
   const _require = (path4) => {
+    if (!moduleExists(path4)) {
+      throw new NotFoundError(`No module '${path4}' found`);
+    }
     switch (options2?.mode || "require") {
       case "raw":
         return simulateRequire(path4);
@@ -5554,8 +7691,13 @@ ${simulateRequire(path4)}
   let currentPath = rootPath;
   while (currentPath.length >= pagesRoot.length) {
     try {
-      return _require($filepath.join(currentPath, "_private", path3));
+      const finalPath = $filepath.join(currentPath, "_private", path3);
+      return _require(finalPath);
     } catch (e) {
+      const errorMsg = `${e}`;
+      if (!(e instanceof NotFoundError)) {
+        throw e;
+      }
       if (currentPath === pagesRoot) {
         throw new Error(
           `No module '${path3}' found in _private directories from ${rootPath} up to ${pagesRoot}`
@@ -5564,9 +7706,7 @@ ${simulateRequire(path4)}
       currentPath = $filepath.dir(currentPath);
     }
   }
-  throw new Error(
-    `No module '${path3}' found in any parent _private directory`
-  );
+  throw new Error(`Unreachable code reached`);
 };
 var mkMeta = () => {
   const metaData = {};
@@ -5604,6 +7744,9 @@ var AfterBootstrapHandler = () => {
   const config = {
     preprocessorExts: [".ejs", ".md"],
     debug: false,
+    host: "http://localhost:8090",
+    boot: () => {
+    },
     ...(() => {
       try {
         return require(configPath);
@@ -5615,6 +7758,7 @@ var AfterBootstrapHandler = () => {
   if (config.debug) {
     $app.store().set("__pocketpages_debug", true);
   }
+  config.boot(globalApi);
   const physicalFiles = [];
   $filepath.walkDir(pagesRoot, (path3, d, err) => {
     const isDir = d.isDir();
@@ -5718,7 +7862,7 @@ var AfterBootstrapHandler = () => {
 // src/lib/MiddlewareHandler.ts
 init_cjs_shims();
 var import_pocketbase_log2 = __toESM(require_dist2());
-var import_url_parse = __toESM(require_url_parse());
+var import_url_parse2 = __toESM(require_url_parse());
 
 // src/lib/ejs.ts
 init_cjs_shims();
@@ -7701,7 +9845,7 @@ var Marked = class {
     return _Parser.parse(tokens, options2 ?? this.defaults);
   }
   parseMarkdown(blockType) {
-    const parse3 = (src, options2) => {
+    const parse5 = (src, options2) => {
       const origOpt = { ...options2 };
       const opt = { ...this.defaults, ...origOpt };
       const throwError = this.onError(!!opt.silent, !!opt.async);
@@ -7743,7 +9887,7 @@ var Marked = class {
         return throwError(e);
       }
     };
-    return parse3;
+    return parse5;
   }
   onError(silent, async) {
     return (e) => {
@@ -7876,6 +10020,19 @@ import_pocketbase_ejs.default.resolveInclude = function(includePath, templatePat
   }
   throw new Error(`No partial '${includePath}' found in any _private directory`);
 };
+var oldIncludeFile = import_pocketbase_ejs.default.includeFile;
+import_pocketbase_ejs.default.includeFile = function(path3, options2) {
+  console.log(`***custom includeFile`, { path: path3, options: options2 });
+  const renderFunc = oldIncludeFile(path3, options2);
+  return (data) => {
+    const rendered = renderFunc(data);
+    if ($filepath.ext(path3) === ".md") {
+      const res = marked2(rendered, options2);
+      return res.content;
+    }
+    return rendered;
+  };
+};
 var parseSlots = (input) => {
   const regex = /<!--\s*slot:(\w+)\s*-->([\s\S]*?)(?=<!--\s*slot:\w+\s*-->|$)/g;
   const slots = {};
@@ -7919,22 +10076,8 @@ var renderFile = (fname, api) => {
       `,
       compileDebug: true,
       async: false,
-      cache: false,
+      cache: false
       // !$app.isDev(),
-      includer: (path3, filename) => {
-        dbg2(`includer`, { path: path3, filename });
-        if ($filepath.ext(filename) === ".md") {
-          const markdown = import_pocketbase_node3.fs.readFileSync(filename, "utf8");
-          const res = marked2(markdown, api);
-          forEach(res.frontmatter, (v, k) => {
-            api.meta(k, v);
-          });
-          return {
-            template: res.content
-          };
-        }
-        return { filename };
-      }
     }
   );
   dbg2(`renderFile end`, {
@@ -7961,7 +10104,7 @@ var base_exports = {};
 __export(base_exports, {
   exclude: () => exclude,
   extract: () => extract,
-  parse: () => parse,
+  parse: () => parse2,
   parseUrl: () => parseUrl,
   pick: () => pick2,
   stringify: () => stringify5,
@@ -8321,7 +10464,7 @@ function extract(input) {
   }
   return input.slice(queryStart + 1);
 }
-function parse(query, options2) {
+function parse2(query, options2) {
   options2 = {
     decode: true,
     sort: true,
@@ -8427,7 +10570,7 @@ function parseUrl(url, options2) {
   }
   return {
     url: url_?.split("?")?.[0] ?? "",
-    query: parse(extract(url), options2),
+    query: parse2(extract(url), options2),
     ...options2 && options2.parseFragmentIdentifier && hash ? { fragmentIdentifier: decode2(hash, options2) } : {}
   };
 }
@@ -8441,7 +10584,7 @@ function stringifyUrl(object, options2) {
   const url = removeHash(object.url).split("?")[0] || "";
   const queryFromUrl = extract(object.url);
   const query = {
-    ...parse(queryFromUrl, { sort: false }),
+    ...parse2(queryFromUrl, { sort: false }),
     ...object.query
   };
   let queryString = stringify5(query, options2);
@@ -8553,10 +10696,20 @@ var MiddlewareHandler = (request, response, next) => {
         return s;
       },
       formData: request.formData,
+      body: request.body,
       auth: request.auth,
       request,
       response,
-      redirect: response.redirect,
+      redirect: (path3, _options) => {
+        const options2 = {
+          status: 302,
+          message: "",
+          ..._options
+        };
+        const parsed = globalApi.url(path3);
+        parsed.query.__flash = options2.message;
+        response.redirect(parsed.toString(), options2.status);
+      },
       slot: "",
       slots: {},
       asset: (path3) => {
@@ -8566,7 +10719,7 @@ var MiddlewareHandler = (request, response, next) => {
           route.assetPrefix,
           path3
         );
-        const assetRoute = parseRoute(new import_url_parse.default(fullAssetPath), routes);
+        const assetRoute = parseRoute(new import_url_parse2.default(fullAssetPath), routes);
         dbg2({ fullAssetPath, shortAssetPath, assetRoute });
         if (!assetRoute) {
           if ($app.isDev()) {
@@ -8577,7 +10730,36 @@ var MiddlewareHandler = (request, response, next) => {
         return fingerprint(shortAssetPath, assetRoute.route.fingerprint);
       },
       meta: mkMeta(),
-      resolve: mkResolve($filepath.dir(absolutePath))
+      resolve: mkResolve($filepath.dir(absolutePath)),
+      registerWithPassword: (email, password, options2) => {
+        globalApi.createUser(email, password, options2);
+        const authData = api.signInWithPassword(email, password, options2);
+        return authData;
+      },
+      signInWithPassword: (email, password, options2) => {
+        const authData = globalApi.pb().collection(options2?.collection ?? "users").authWithPassword(email, password);
+        api.signInWithToken(authData.token);
+        return authData;
+      },
+      signInAnonymously: (options2) => {
+        const { user, email, password } = globalApi.createAnonymousUser();
+        const authData = api.signInWithPassword(email, password, options2);
+        return authData;
+      },
+      signInWithOTP: (otpId, password, options2) => {
+        const pb = globalApi.pb();
+        const authData = pb.collection(options2?.collection ?? "users").authWithOTP(otpId, password.toString());
+        api.signInWithToken(authData.token);
+        return authData;
+      },
+      signOut: () => {
+        response.cookie(`pb_auth`, "", { path: `/` });
+      },
+      signInWithToken: (token2) => {
+        response.cookie(`pb_auth`, token2, {
+          path: "/"
+        });
+      }
     };
     let data = {};
     route.middlewares.forEach((maybeMiddleware) => {
@@ -8585,7 +10767,7 @@ var MiddlewareHandler = (request, response, next) => {
       data = merge(data, require(maybeMiddleware)({ ...api, data }));
     });
     {
-      const methods = ["load", method];
+      const methods = ["load", method.toLowerCase()];
       forEach(methods, (method2) => {
         const loaderFname = route.loaders[method2];
         if (!loaderFname) return;
@@ -8642,7 +10824,38 @@ ${e instanceof Error ? e.stack?.replaceAll(pagesRoot, "/" + $filepath.base(pages
 
 // src/lib/pages/providers/v23Provider/wrapper.ts
 init_cjs_shims();
-var import_url_parse2 = __toESM(require_url_parse());
+var cookie = __toESM(require_dist5());
+
+// src/lib/auth.ts
+init_cjs_shims();
+var setAuthFromHeaderOrCookie = (request) => {
+  const token2 = request.header("Authorization") || request.cookies("pb_auth");
+  if (token2) {
+    const cleanToken = token2.replace(/^Bearer\s+/i, "");
+    let data = {};
+    try {
+      data = JSON.parse(cleanToken);
+      if (typeof data === null || typeof data !== "object" || Array.isArray(data)) {
+        data = {};
+      }
+    } catch (_) {
+    }
+    const pb = globalApi.pb();
+    pb.authStore.save(data.token || "", data.record || data.model || null);
+    try {
+      pb.authStore.isValid && pb.collection("users").authRefresh();
+    } catch (_) {
+      pb.authStore.clear();
+    }
+    try {
+      request.auth = $app.findAuthRecordByToken(cleanToken, "auth");
+    } catch (e) {
+    }
+  }
+};
+
+// src/lib/pages/providers/v23Provider/wrapper.ts
+var import_url_parse3 = __toESM(require_url_parse());
 var v23MiddlewareWrapper = (e) => {
   const next = () => {
     e.next();
@@ -8661,10 +10874,22 @@ var v23MiddlewareWrapper = (e) => {
   }
   const request = {
     auth: e.auth,
-    method: method.toLowerCase(),
-    url: (0, import_url_parse2.default)(url.string()),
+    method: method.toUpperCase(),
+    url: (0, import_url_parse3.default)(url.string()),
     formData: () => e.requestInfo().body,
-    body: () => e.requestInfo().body
+    body: () => e.requestInfo().body,
+    header: (name) => {
+      return e.request?.header.get(name) || "";
+    },
+    cookies: /* @__PURE__ */ (() => {
+      let parsed;
+      return (name) => {
+        if (!parsed) {
+          parsed = cookie.parse(request.header(`Cookie`));
+        }
+        return parsed[name];
+      };
+    })()
   };
   const response = {
     file: (path3) => {
@@ -8683,12 +10908,19 @@ var v23MiddlewareWrapper = (e) => {
       e.html(status, data);
     },
     header: (name, value) => {
+      if (value === void 0) {
+        return e.response.header().get(name) || "";
+      }
       e.response.header().set(name, value);
+      return value;
     },
     cookie: (name, value, options2) => {
-      response.header("Set-Cookie", `${name}=${value}; Path=/`);
+      const serialized = cookie.serialize(name, value, options2);
+      response.header(`Set-Cookie`, serialized);
+      return serialized;
     }
   };
+  setAuthFromHeaderOrCookie(request);
   require(`${__hooks}/pocketpages.pb`).MiddlewareHandler(
     request,
     response,
@@ -8710,6 +10942,7 @@ if (isBooting) {
   findRecordsByFilter,
   globalApi,
   log,
+  moduleExists,
   stringify,
   v23MiddlewareWrapper
 });

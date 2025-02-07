@@ -93,7 +93,7 @@ const advance = (userId = null) => {
             advanceGame('end', txn, (room) => {
               room.battles = []
               Object.entries(room.grid).forEach(([idx, cell]) => {
-                cell.attackedBy = []
+                cell.attackedBy = {}
               })
             })
           } else {
@@ -102,7 +102,7 @@ const advance = (userId = null) => {
               room.stepTtl = DEFAULT_PLACEMENT_TTL
               room.roundNum += 1
               Object.entries(room.grid).forEach(([idx, cell]) => {
-                cell.attackedBy = []
+                cell.attackedBy = {}
               })
               Object.entries(room.players).forEach(([playerId, player]) => {
                 player.shards += room.shardsPerRound
@@ -127,7 +127,7 @@ const advance = (userId = null) => {
                 [`grid`]: getSanitizedGrid(roomState),
                 [`battles`]: [],
               },
-              (client) => !playerIds.includes(client.get('auth').id)
+              (client) => !roomState.players[client.get('auth').id]
             )
 
             // Push player deltas to players
