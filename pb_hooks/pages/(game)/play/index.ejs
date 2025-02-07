@@ -4,19 +4,22 @@
 <%-resolve('particle.js', {mode: 'script'}) %>
 <%-resolve('particle.css', {mode: 'style'}) %>
 <script>
-  const DEFAULT_CLIENT_CELL = {
-    busy: false,
-    isFighting: false,
-  }
-  const DEFAULT_CELL = {
-    playerId: null,
-    health: 0,
-    attackedBy: {},
-  }
+  const clone = (obj) => JSON.parse(JSON.stringify(obj))
+  const DEFAULT_CLIENT_CELL = () =>
+    clone({
+      busy: false,
+      isFighting: false,
+    })
+  const DEFAULT_CELL = () =>
+    clone({
+      playerId: null,
+      health: 0,
+      attackedBy: {},
+    })
   const normalizeRoomState = (roomState) => {
     for (let i = 1; i <= 100; i++) {
       roomState.grid[i] = {
-        ...DEFAULT_CELL,
+        ...DEFAULT_CELL(),
         ...roomState.grid[i],
       }
     }
@@ -183,7 +186,7 @@
     getCell(idx) {
       if (!this.roomState.grid[idx]) {
         this.roomState.grid[idx] = {
-          ...DEFAULT_CELL,
+          ...DEFAULT_CELL(),
         }
       }
       return this.roomState.grid[idx]
@@ -191,7 +194,7 @@
     getClientCell(idx) {
       if (!this.clientRoomState.grid[idx]) {
         this.clientRoomState.grid[idx] = {
-          ...DEFAULT_CLIENT_CELL,
+          ...DEFAULT_CLIENT_CELL(),
         }
       }
       return this.clientRoomState.grid[idx]
