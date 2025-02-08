@@ -5,11 +5,13 @@
     "serve": "pocketbase serve --dir=pb_data",
     "dev": "concurrently \"npm:dev:*\"",
     "dev:pocketbase": "pocketbase serve --dir=pb_data --dev",
-    "dev:css": "tailwindcss -i ./pb_hooks/pages/app.tailwind.css -o ./pb_hooks/pages/app.css --watch"
+    "dev:css": "tailwindcss -i ./pb_hooks/pages/app.tailwind.css -o ./pb_hooks/pages/app.css --watch",
+    "dev:pocketpages": "chokidar '../pocketpages/dist/*' -c 'cp ../pocketpages/dist/* pb_hooks'"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.11",
     "@tailwindcss/typography": "^0.5.16",
+    "chokidar-cli": "^3.0.0",
     "concurrently": "^9.1.2",
     "daisyui": "^4.12.23",
     "pocketbase-jsvm": "^0.25.10001",
