@@ -14,7 +14,7 @@
     "noFallthroughCasesInSwitch": true /* Enable error reporting for fallthrough cases in switch statements. */,
     "noUncheckedIndexedAccess": true /* Add 'undefined' to a type when accessed using an index. */,
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-    "types": ["pocketbase-jsvm"]
+    "types": ["pocketbase-jsvm", "."]
   },
-  "include": ["./pb_hooks/**/*.js"]
+  "include": ["./pb_hooks/**/*.js", "./pb_hooks/**/*.ejs", "./pb_hooks/**/*.ts"]
 }
