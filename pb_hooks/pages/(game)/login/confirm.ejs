@@ -1,0 +1,15 @@
+<script server>
+  const { state, code } = params
+
+  try {
+    // Complete the OAuth2 flow and sign in the user
+    const authData = signInWithOAuth2(state, code)
+
+    // Redirect to home page or dashboard
+    redirect('/play')
+  } catch (e) {
+    meta('alert', e.message)
+  }
+</script>
+
+<a href="/login" class="btn btn-primary">Try again</a>

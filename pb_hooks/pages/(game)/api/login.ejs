@@ -1,19 +1,18 @@
 <script server>
   const { ROOM_ID } = resolve('constants')
-  const user = (() => {
-    if (auth) return auth
-    const usersCollection = $app.findCollectionByNameOrId('users')
-    const user = new Record(usersCollection)
-    const password = $security.randomStringWithAlphabet(40, '123456789')
-    user.setPassword(password)
-    $app.save(user)
-    return user
+  const { token, record } = (() => {
+    if (auth)
+      return {
+        token: auth.newAuthToken(),
+        record: auth,
+      }
+    const authData = api.signInAnonymously()
+    return authData
   })()
-  const token = user.newAuthToken()
 
   const { getRoomState, getSanitizedRoomState } = resolve('room')
   const roomState = getRoomState(ROOM_ID)
-  const sanitizedRoomState = getSanitizedRoomState(roomState, user.id)
+  const sanitizedRoomState = getSanitizedRoomState(roomState, record.id)
 
-  return { token, user, roomState: sanitizedRoomState }
+  return { token, user: record, roomState: sanitizedRoomState }
 </script>

@@ -1,0 +1,9 @@
+<div class="prose flex flex-col items-center">
+  <h2 class="mt-10">Logging in to Kingdom is Better</h2>
+
+  <% if (meta('alert')) { %>
+  <div class="alert alert-error"><%= meta('alert') %></div>
+  <% } %>
+
+  <div class="mt-10"><%-slot%></div>
+</div>

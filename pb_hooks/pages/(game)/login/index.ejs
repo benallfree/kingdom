@@ -1,0 +1,17 @@
+<script server>
+  if (request.method === 'POST') {
+    try {
+      const url = requestOAuth2Login(body().provider, {
+        redirectPath: `/login/confirm`,
+      })
+      // The user will be automatically redirected to Google's consent screen
+    } catch (error) {
+      meta('alert', error.message)
+    }
+  }
+</script>
+
+<form method="POST" action="/login" class="mt-10">
+  <input type="hidden" name="provider" value="google" />
+  <button class="btn btn-primary" type="submit">Sign in with Google</button>
+</form>

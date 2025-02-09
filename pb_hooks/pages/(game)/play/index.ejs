@@ -465,263 +465,239 @@
   }
 </script>
 
-<div x-data="gameState">
-  <div x-show="isReady" class="flex flex-col items-center">
-    <div class="flex flex-col items-center max-w-[400px]">
-      <div class="h-[40px] overflow-hidden">
-        <img
-          src="<%=asset('/splash.webp')%>"
-          class="relative -translate-y-1/2 top-[27px]"
-        />
+<div x-data="gameState" x-show="isReady">
+  <div
+    x-bind:style="`display: ${roomState.meta.mod.title ? 'block' : 'none'}; background-color: ${roomState.meta.mod.bgColor || '#ff0'}; color: ${roomState.meta.mod.textColor || '#000'};`"
+    class="text-2xs font-mono p-1 w-full"
+  >
+    <div class="flex flex-row items-center justify-between gap-2">
+      <div x-text="roomState.meta.mod.title"></div>
+      <div>
+        <a
+          :href="roomState.meta.mod.cta.link"
+          target="_blank"
+          x-bind:style="`background-color: ${roomState.meta.mod.cta.bgColor || '#0f0'}; color: ${roomState.meta.mod.cta.textColor || '#000'};`"
+          class="btn btn-xs rounded-md"
+          x-text="roomState.meta.mod.cta.text"
+        ></a>
       </div>
-      <div
-        x-bind:style="`display: ${roomState.meta.mod.title ? 'block' : 'none'}; background-color: ${roomState.meta.mod.bgColor || '#ff0'}; color: ${roomState.meta.mod.textColor || '#000'};`"
-        class="text-2xs font-mono p-1 w-full"
-      >
-        <div class="flex flex-row items-center justify-between gap-2">
-          <div x-text="roomState.meta.mod.title"></div>
-          <div>
-            <a
-              :href="roomState.meta.mod.cta.link"
-              target="_blank"
-              x-bind:style="`background-color: ${roomState.meta.mod.cta.bgColor || '#0f0'}; color: ${roomState.meta.mod.cta.textColor || '#000'};`"
-              class="btn btn-xs rounded-md"
-              x-text="roomState.meta.mod.cta.text"
-            ></a>
-          </div>
-        </div>
-      </div>
-      <div class="flex flex-row items-center gap-2 mt-2 w-full">
-        <div class="ml-2 text-2xs font-mono flex flex-row items-center gap-1">
-          <div
-            class="border border-1 border-primary rounded relative w-4 h-4 flex items-center justify-center"
-          >
-            <div x-show="roomState.step == 'placement'" class="animate-pulse">
-              📍
-            </div>
-            <div x-show="roomState.step == 'assignment'" class="animate-pulse">
-              🎯
-            </div>
-            <div x-show="roomState.step == 'war'" class="animate-pulse">⚖️</div>
-            <div x-show="roomState.step == 'end'" class="animate-pulse">🏆</div>
-          </div>
-          <div class="">
-            <span x-text="String(roomState.roundNum).padStart(3, '0')"></span
-            >/<span
-              x-text="String(roomState.maxRounds).padStart(3, '0')"
-            ></span>
-          </div>
-        </div>
-        <div class="flex-1">
-          <progress
-            x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')}`"
-            x-bind:max="roomState.stepTtl"
-            x-bind:value="msRemaining"
-          ></progress>
-        </div>
-        <div class="relative w-16 h-8 mr-2 text-2xs font-mono">
-          <svg
-            class="size-4 absolute top-1/2 -translate-y-1/2 left-0"
-            x-show="auth"
-            x-bind:data-jdenticon-value="auth?.id"
-          ></svg>
-          <div class="absolute top-0 right-0">
-            💎<span x-text="String(playerState.shards).padStart(4, '0')"></span>
-          </div>
-          <div class="absolute bottom-0 right-0">
-            ❤️<span x-text="String(playerState.health).padStart(4, '0')"></span>
-          </div>
-        </div>
-      </div>
-      <div class="h-5 w-full mb-2 relative">
-        <div class="text-center">
-          <div x-show="!error && roomState.step === 'placement'">
-            Place and fortify tiles.
-          </div>
-          <div
-            x-show="!error && roomState.step === 'assignment' && !hasEnemies"
-          >
-            There is nobody to attack. Invite some friends!
-            <button
-              class="btn btn-xs"
-              onclick="navigator.clipboard.writeText('https://kingdom.pockethost.io')"
-            >
-              Copy invite link
-            </button>
-          </div>
-          <div x-show="!error && roomState.step === 'assignment' && hasEnemies">
-            Attack enemies, but beware counterattacks.
-          </div>
-          <div x-show="error" x-text="error?.message" class="text-error"></div>
-          <div
-            x-show="roomState.step == 'war' && roomState.battles?.length == 0"
-          >
-            There are no battles this round. Sit tight.
-          </div>
-          <div x-show="roomState.step == 'end'" class="animate-pulse">
-            The game has ended. New rounds begin soon.
-          </div>
-        </div>
-        <div
-          x-show="roomState.battles?.length > 0 && roomState.step == 'war'"
-          class="flex flex-row items-center gap-2 w-full"
-        >
-          <input
-            type="range"
-            min="-1"
-            x-bind:max="(roomState.battles?.length||0) - 1"
-            x-bind:value="battleIdx"
-            @input="seekBattle( parseInt($event.target.value))"
-            class="range w-full h-5"
-          />
-          <button x-on:click="toggleBattle()">
-            <span x-text="isBattlePlaying ? '⏸️' : '▶️'"></span>
-          </button>
-        </div>
-      </div>
-
-      <div class="relative">
-        <div class="grid grid-cols-10 gap-0">
-          <template x-for="i in 100">
-            <div
-              class="w-10 h-10 border border-primary border-1 relative"
-              x-on:click="handleCellClick(i)"
-              x-bind:id="`c${i}`"
-            >
-              <div
-                x-show="error?.idx == i"
-                class="absolute top-0 left-0 w-full h-full bg-red-600 animate-out fade-out duration-500 fill-mode-forwards"
-              ></div>
-              <div x-show="getCell(i).playerId ">
-                <div
-                  x-show="i == roomState.prize?.idx"
-                  class="absolute top-0 left-0 w-full h-full bg-yellow-300 opacity-20 animate-[pulse_1s_ease-in-out_infinite]"
-                ></div>
-                <div class="absolute top-0 left-0 w-full h-full">
-                  <svg
-                    class="size-8 absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2"
-                    x-bind:data-jdenticon-value="getCell(i).playerId"
-                  ></svg>
-                </div>
-                <div
-                  x-show="getCell(i).health"
-                  x-text="getCell(i).health"
-                  class="absolute bottom-0 right-0 text-xs w-5 h-5 flex items-center justify-center bg-green-700 text-green-50 rounded-tl-lg"
-                ></div>
-              </div>
-              <div
-                x-show="getCell(i).playerId && getCell(i).playerId != auth?.id && getCell(i).strength > 0"
-                x-bind:class="`absolute top-1 left-1 flex flex-row gap-1 bg-black size-2 items-center p-1 border-2 border-black rounded-full  ${getCell(i).strength < 2 ? `bg-green-400`:getCell(i).strength < 3 ? `bg-yellow-400`: `bg-red-400`}`"
-              ></div>
-              <div
-                x-show="selectedIdx == i"
-                class="absolute top-0 left-0 w-full h-full border-2 border-green-600 animate-pulse"
-              ></div>
-              <div x-show="roomState.step==='assignment'">
-                <div
-                  x-show="actionableNeighbors.includes(i)"
-                  class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
-                ></div>
-                <div
-                  x-show="isAttackedByPlayer(i)"
-                  class="absolute top-0 left-0 w-full h-full border-2 border-red-600 bg-red-600 animate-pulse"
-                ></div>
-                <div
-                  x-show="isAttackedByPlayer(i)"
-                  x-text="attackedByCount(i)"
-                  class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 animate-pulse flex items-center justify-center"
-                ></div>
-              </div>
-              <div
-                x-show="getClientCell(i).busy"
-                class="absolute top-0 left-0 w-full h-full animate-spin"
-              >
-                <svg
-                  class="w-full h-full"
-                  x-bind:data-jdenticon-value="auth?.id"
-                ></svg>
-              </div>
-              <div
-                x-show="getClientCell(i).isFighting"
-                class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
-              ></div>
-            </div>
-          </template>
-        </div>
-      </div>
-      <div class="w-full">
-        <div class="bg-gray-800 p-2 w-full">
-          <!-- Chat messages -->
-          <div class="mb-4 max-h-96 overflow-y-auto">
-            <template
-              x-for="(message) in messages"
-              :key="`${message.t}-${message.playerId}`"
-            >
-              <div class="flex items-start gap-1">
-                <div class="w-4 h-4 flex-shrink-0">
-                  <svg
-                    class="w-full h-full"
-                    x-bind:data-jdenticon-value="message.playerId"
-                  ></svg>
-                </div>
-                <div class="flex-1">
-                  <div
-                    class="text-gray-100 text-xs"
-                    x-text="message.text"
-                  ></div>
-                </div>
-                <div
-                  class="text-xs text-gray-400"
-                  x-text="ago(message.t)"
-                ></div>
-              </div>
-            </template>
-          </div>
-
-          <!-- Chat input -->
-          <div class="flex gap-2">
-            <input
-              type="text"
-              x-model="messageText"
-              @keyup.enter="sendMessage()"
-              placeholder="Type a message..."
-              class="flex-1 bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              @click="sendMessage()"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      </div>
-      <div
-        x-show="roomState.prize?.banner"
-        x-html="roomState.prize?.banner"
-      ></div>
     </div>
-    <div class="p-4 bg-base-300 rounded-lg">
-      <h3 class="text-lg font-bold mb-4">Debugging Mode</h3>
-
-      <div class="flex flex-col gap-1 text-sm">
-        <div class="flex items-center gap-1">
-          <svg
-            x-show="auth"
-            class="w-4 h-4"
-            x-bind:data-jdenticon-value="auth?.id"
-          ></svg>
-          <code x-text="auth?.id"></code>
+  </div>
+  <div class="flex flex-row items-center gap-2 mt-2 w-full">
+    <div class="ml-2 text-2xs font-mono flex flex-row items-center gap-1">
+      <div
+        class="border border-1 border-primary rounded relative w-4 h-4 flex items-center justify-center"
+      >
+        <div x-show="roomState.step == 'placement'" class="animate-pulse">
+          📍
         </div>
-        <div>Room: <code x-text="ROOM_ID"></code></div>
-        <div>Shards: <span x-text="playerState.shards"></span></div>
-        <div>Health: <span x-text="playerState.health"></span></div>
-        <div>Step: <span x-text="roomState.step"></span></div>
-        <div>Started: <span x-text="roomState.stepStartedAt"></span></div>
-        <div>TTL: <span x-text="roomState.stepTtl"></span></div>
-        <div>Round: <span x-text="roomState.roundNum"></span></div>
-        <div>Max: <span x-text="roomState.maxRounds"></span></div>
+        <div x-show="roomState.step == 'assignment'" class="animate-pulse">
+          🎯
+        </div>
+        <div x-show="roomState.step == 'war'" class="animate-pulse">⚖️</div>
+        <div x-show="roomState.step == 'end'" class="animate-pulse">🏆</div>
       </div>
+      <div class="">
+        <span x-text="String(roomState.roundNum).padStart(3, '0')"></span>/<span
+          x-text="String(roomState.maxRounds).padStart(3, '0')"
+        ></span>
+      </div>
+    </div>
+    <div class="flex-1">
+      <progress
+        x-bind:class="`progress  ${pctRemaining > 0.7 ? 'progress-success' : (pctRemaining > 0.3 ? 'progress-info' : 'progress-error')}`"
+        x-bind:max="roomState.stepTtl"
+        x-bind:value="msRemaining"
+      ></progress>
+    </div>
+    <div class="relative w-16 h-8 mr-2 text-2xs font-mono">
+      <svg
+        class="size-4 absolute top-1/2 -translate-y-1/2 left-0"
+        x-show="auth"
+        x-bind:data-jdenticon-value="auth?.id"
+      ></svg>
+      <div class="absolute top-0 right-0">
+        💎<span x-text="String(playerState.shards).padStart(4, '0')"></span>
+      </div>
+      <div class="absolute bottom-0 right-0">
+        ❤️<span x-text="String(playerState.health).padStart(4, '0')"></span>
+      </div>
+    </div>
+  </div>
+  <div class="h-5 w-full mb-2 relative">
+    <div class="text-center">
+      <div x-show="!error && roomState.step === 'placement'">
+        Place and fortify tiles.
+      </div>
+      <div x-show="!error && roomState.step === 'assignment' && !hasEnemies">
+        There is nobody to attack. Invite some friends!
+        <button
+          class="btn btn-xs"
+          onclick="navigator.clipboard.writeText('https://kingdom.pockethost.io')"
+        >
+          Copy invite link
+        </button>
+      </div>
+      <div x-show="!error && roomState.step === 'assignment' && hasEnemies">
+        Attack enemies, but beware counterattacks.
+      </div>
+      <div x-show="error" x-text="error?.message" class="text-error"></div>
+      <div x-show="roomState.step == 'war' && roomState.battles?.length == 0">
+        There are no battles this round. Sit tight.
+      </div>
+      <div x-show="roomState.step == 'end'" class="animate-pulse">
+        The game has ended. New rounds begin soon.
+      </div>
+    </div>
+    <div
+      x-show="roomState.battles?.length > 0 && roomState.step == 'war'"
+      class="flex flex-row items-center gap-2 w-full"
+    >
+      <input
+        type="range"
+        min="-1"
+        x-bind:max="(roomState.battles?.length||0) - 1"
+        x-bind:value="battleIdx"
+        @input="seekBattle( parseInt($event.target.value))"
+        class="range w-full h-5"
+      />
+      <button x-on:click="toggleBattle()">
+        <span x-text="isBattlePlaying ? '⏸️' : '▶️'"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="relative">
+    <div class="grid grid-cols-10 gap-0">
+      <template x-for="i in 100">
+        <div
+          class="w-10 h-10 border border-primary border-1 relative"
+          x-on:click="handleCellClick(i)"
+          x-bind:id="`c${i}`"
+        >
+          <div
+            x-show="error?.idx == i"
+            class="absolute top-0 left-0 w-full h-full bg-red-600 animate-out fade-out duration-500 fill-mode-forwards"
+          ></div>
+          <div x-show="getCell(i).playerId ">
+            <div
+              x-show="i == roomState.prize?.idx"
+              class="absolute top-0 left-0 w-full h-full bg-yellow-300 opacity-20 animate-[pulse_1s_ease-in-out_infinite]"
+            ></div>
+            <div class="absolute top-0 left-0 w-full h-full">
+              <svg
+                class="size-8 absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2"
+                x-bind:data-jdenticon-value="getCell(i).playerId"
+              ></svg>
+            </div>
+            <div
+              x-show="getCell(i).health"
+              x-text="getCell(i).health"
+              class="absolute bottom-0 right-0 text-xs w-5 h-5 flex items-center justify-center bg-green-700 text-green-50 rounded-tl-lg"
+            ></div>
+          </div>
+          <div
+            x-show="getCell(i).playerId && getCell(i).playerId != auth?.id && getCell(i).strength > 0"
+            x-bind:class="`absolute top-1 left-1 flex flex-row gap-1 bg-black size-2 items-center p-1 border-2 border-black rounded-full  ${getCell(i).strength < 2 ? `bg-green-400`:getCell(i).strength < 3 ? `bg-yellow-400`: `bg-red-400`}`"
+          ></div>
+          <div
+            x-show="selectedIdx == i"
+            class="absolute top-0 left-0 w-full h-full border-2 border-green-600 animate-pulse"
+          ></div>
+          <div x-show="roomState.step==='assignment'">
+            <div
+              x-show="actionableNeighbors.includes(i)"
+              class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
+            ></div>
+            <div
+              x-show="isAttackedByPlayer(i)"
+              class="absolute top-0 left-0 w-full h-full border-2 border-red-600 bg-red-600 animate-pulse"
+            ></div>
+            <div
+              x-show="isAttackedByPlayer(i)"
+              x-text="attackedByCount(i)"
+              class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 animate-pulse flex items-center justify-center"
+            ></div>
+          </div>
+          <div
+            x-show="getClientCell(i).busy"
+            class="absolute top-0 left-0 w-full h-full animate-spin"
+          >
+            <svg
+              class="w-full h-full"
+              x-bind:data-jdenticon-value="auth?.id"
+            ></svg>
+          </div>
+          <div
+            x-show="getClientCell(i).isFighting"
+            class="absolute top-0 left-0 w-full h-full border-2 border-red-600 animate-pulse"
+          ></div>
+        </div>
+      </template>
+    </div>
+  </div>
+  <div class="w-full">
+    <div class="bg-gray-800 p-2 w-full">
+      <!-- Chat messages -->
+      <div class="mb-4 max-h-96 overflow-y-auto">
+        <template
+          x-for="(message) in messages"
+          :key="`${message.t}-${message.playerId}`"
+        >
+          <div class="flex items-start gap-1">
+            <div class="w-4 h-4 flex-shrink-0">
+              <svg
+                class="w-full h-full"
+                x-bind:data-jdenticon-value="message.playerId"
+              ></svg>
+            </div>
+            <div class="flex-1">
+              <div class="text-gray-100 text-xs" x-text="message.text"></div>
+            </div>
+            <div class="text-xs text-gray-400" x-text="ago(message.t)"></div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Chat input -->
+      <div class="flex gap-2">
+        <input
+          type="text"
+          x-model="messageText"
+          @keyup.enter="sendMessage()"
+          placeholder="Type a message..."
+          class="flex-1 bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          @click="sendMessage()"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+  <div x-show="roomState.prize?.banner" x-html="roomState.prize?.banner"></div>
+  <div class="p-4 bg-base-300 rounded-lg">
+    <h3 class="text-lg font-bold mb-4">Debugging Mode</h3>
+
+    <div class="flex flex-col gap-1 text-sm">
+      <div class="flex items-center gap-1">
+        <svg
+          x-show="auth"
+          class="w-4 h-4"
+          x-bind:data-jdenticon-value="auth?.id"
+        ></svg>
+        <code x-text="auth?.id"></code>
+      </div>
+      <div>Room: <code x-text="ROOM_ID"></code></div>
+      <div>Shards: <span x-text="playerState.shards"></span></div>
+      <div>Health: <span x-text="playerState.health"></span></div>
+      <div>Step: <span x-text="roomState.step"></span></div>
+      <div>Started: <span x-text="roomState.stepStartedAt"></span></div>
+      <div>TTL: <span x-text="roomState.stepTtl"></span></div>
+      <div>Round: <span x-text="roomState.roundNum"></span></div>
+      <div>Max: <span x-text="roomState.maxRounds"></span></div>
     </div>
   </div>
 </div>

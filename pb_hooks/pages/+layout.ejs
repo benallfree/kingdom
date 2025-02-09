@@ -19,6 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.umd.min.js"></script>
     <script>
       const pb = new PocketBase('https://kingdom.pockethost.io')
+      pb.authStore.loadFromCookie(document.cookie)
     </script>
   </head>
   <body>
